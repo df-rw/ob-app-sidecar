@@ -1,32 +1,37 @@
-# ob-app
+# ob-app-sidecar
 
-This document describes how to setup a development environment for a web
-application using:
+This repository shows how to setup and deploy an [Observable
+Framework](https://observablehq.com/framework) frontend application with a
+backend application written in [Go](https://go.dev), as well as a validator
+sample application, onto [Google Cloud Run](https://cloud.google.com/run) in a
+[sidecar](https://cloud.google.com/run/docs/deploying#sidecars) configuration.
+[nginx](https://nginx.org) is used as the ingress container and hosts the
+statically built Observable Framework application; the backend application and
+the validator application are separate sidecars.
 
-- [Observable Framework](https://observablehq.com/framework) frontend;
-- [Go](https://go.dev) web server backend;
-- [htmx](https://htmx.org) for hypertext transactions;
-- [nginx](https://nginx.org) for tying everything together.
+This is based on <https://github.com/df-rw/ob-app>.
 
-## tl;dr
+## Aside: What is a validator application?
 
-```shell
-git clone https://github.com/df-rw/ob-app
-cd ob-app
-npm install
-go run ./cmd/web/*.go -p 8082        # Start backend server (in one terminal).
-npm run dev -- --port 8081 --no-open # Start Observable framework (diff terminal).
-nginx -p . -c ./nginx-dev.conf       # Start nginx (diff terminal).
-```
+The validator application accepts requests from the client and validates them
+prior to the request being handed off to the application. What the validation
+does is application dependent, and could be anything like a basic auth check, a
+cookie check or JWT validation.
 
-Open browser to http://localhost:8080. Click click click.
+The validator application exists _separately_ from the application and proxy;
+however the proxy is (and in production, must be!) configured to send all
+requests through the validator.
+
+The purpose of having a validator application, aside from it's function, is to
+provide a single method of validation that doesn't require changes to a backend
+application.
 
 ## Prerequisites
 
 - Go (`brew install go` or [rtfm](https://go.dev/doc/install))
 - nginx (`brew install nginx` or [rtfm](https://nginx.org/en/docs/install.html))
 
-## Optional
+### Optional
 
 - [air](https://github.com/air-verse/air) for live-reloading the Go backend
   application:
@@ -39,110 +44,107 @@ Configuration for `air` is in the repo as `./.air.toml`. Replace the `go run
 ./cmd/web/*.go -p 8082` line with `air` to get live reloading when a backend
 file changes.
 
-## Why is nginx in there?
+## Install
 
-Observable Framework uses it's own web server to not only serve itself to the
-client, but also provide for hot reloading when frontend content or backend
-data changes. This occurs only in development; with production deploys,
-Observable Framework builds a complete static site.
+```shell
+git clone https://github.com/df-rw/ob-app-sidecar
+cd ob-app-sidecar
+npm install
+```
 
-Writing general purpose applications with Observable Framework on localhost can
-be a little kludgy, as the frontend must be able to make calls to the backend.
-Since the backend server for the application lives outside of Observable
-Framework server, the calls would have to be CORS and the application would
-need to be CORS aware.
+### Development: write your application
 
-It's possible to workaround this by passing environment variables to Observable
-Framework's pages that rewrite URLs for backend calls. However this ends up
-being messy when integrating with other components. For instance: Observable
-Framework doesn't rewrite environment variables inside DOM elements, so tools
-like htmx will lose their neat DOM syntax, and have to be constructed within a
-JavaScript code block at runtime. This is messy for developers and inefficient
-when run.
-
-We can also potentially end up with the development environment not having the
-same code paths as production due to the environment wrangling, making problem
-tracking more difficult.
-
-In the development environment, nginx is used as a proxy between the client
-(browser) and both the Observable Framework server and the application server:
+Create your application by editing your front and backends.
 
 ```
 ----------      ---------------
-| client | ---> | nginx proxy |
+| client | <--> | nginx proxy |
 ----------      ---------------
+                     ^    ^
                      |    |      ----------------------
-                     |    -----> | application server |
+                     |    -----> | backend app server |
                      |           ----------------------
                      |           -------------------------------
                      ----------> | Observable Framework server |
                                  -------------------------------
 ```
 
-Production layout will depend on how you wish to carve up your application.
+- nginx proxies requests from the client to either Observable Framework or the
+  application server.
+- `nginx-dev.conf` is configured to listen on port `6080` for inbound requests,
+  and pass off to Observable on port `6081` and the application server on
+  `6082`.
+- nginx also proxies the Observable Framework websocket connection for live-reloading
+  of the frontend. Changes you make to Observable Framework code will be automatically
+  reloaded in the client.
+- The validator service is [stubbed
+  out](https://nginx.org/en/docs/http/ngx_http_rewrite_module.html#return) in
+  `nginx-dev.conf` and is set to let all requests pass through. You can change this as
+  and when required, but the idea is for validation to not get in the way while writing
+  your application.
 
-## How this all works
-
-- Frontend is a Observable Framework application.
-- Backend is a Go application, that serves a couple of routes hanging off `/api`/.
-- nginx proxies requests from the client browser off to the appropriate backend
-  based on URL (see
-  [`location`](https://nginx.org/en/docs/http/ngx_http_core_module.html#location)).
-
-## Notes
-
-- Check the ports you run your servers on. The defaults, as specified in
-  `nginx-dev.conf` are:
-  - `8080` for the nginx proxy;
-  - `8081` for the Observable Framework server;
-  - `8082` for the backend application.
-- Requests from your client browser should come through
-  `http://localhost:8080`. If nothing seems to be working correctly, check
-  your browser URL and the console to make sure you're using the proxy.
-- If you are only doing work on the front end, of course you don't need to go
-  through the proxy.
-
-## Production deploys
-
-How the application is deployed to production will differ based on target. At a
-minimum:
-
-- `npm run build` will be needed to build the frontend Observable Framework
-  website. This creates a static site under `./dist`.
-- Either:
-  - the backend server application will need to serve the contents of this
-  directory in addition to handling API calls; or
-  - the application is fronted by a proxy which will route client requests.
-
-In this example, we'll front our application with `nginx`. The static site will
-be hosted by `nginx`, and API requests are routed to the backend application:
-
-```
-                             --------------------------------
-                             |  Observable Framework static |
-----------      --------------- site mounted on the proxy   |
-| client | ---> | nginx proxy |------------------------------
-----------      ---------------
-                     |           ----------------------
-                     |---------> | application server |
-                                 ----------------------
-```
-
-This layout is specified in `nginx-prod.conf`. To see this working:
+To get your development environment up and running:
 
 ```shell
-# Stop the development Observable Framework server and the development nginx
-# server. The application server can keep running.
-# ^C ^C
-
-# Build the Observable Framework application:
-npm run build
-
-# Run an nginx proxy with the prod configuration:
-nginx -p . -c ./nginx-prod.conf
-
-# Open your client browser to http://localhost:8080. Click click click.
+go run ./cmd/web/*.go -p 6082        # Start backend server (in one terminal).
+npm run dev -- --port 6081 --no-open # Start Observable framework (diff terminal).
+nginx -p . -c ./nginx-dev.conf       # Start nginx (diff terminal).
 ```
+
+Open browser to <http://localhost:6080>. Click click click, hack hack hack.
+
+### Development: test your containers
+
+Once you're happy with your application, you may wish to test it locally with
+each part of the whole in a separate container. We can do this with
+[Docker](https://docker.com).
+
+```
+                -------------------------------------------------
+                |              -------------------------------- |    --------------------------
+----------      |              |  Observable Framework static | |    |  --------------------  |
+| client | <--> | --------------- site mounted on the proxy   | |<-->|  | validator server |  |
+----------      | | nginx proxy |------------------------------ |    |  --------------------  |
+                | ---------------                               |    --------------------------
+                -------------------------------------------------       validator container
+                                ingress container
+                                        ^
+                                        |
+                                        v
+                -------------------------------------------------
+                |             ----------------------            |
+                |             | backend app server |            |
+                |             ----------------------            |
+                -------------------------------------------------
+                              application container
+```
+
+- `nginx-prod.conf` is configured to listen on port `8080` for inbound
+  requests, pass off application requests to the application server on
+  `8081`, with the validation service listening on port `8082`.
+- `npm run build` will build the Observable Framework application and put the
+  output in `./dist`. You can do this to check a build when you wish. `npm run
+  build` will also be run when you run `make docker.build-ingress` to create
+  the ingress container (see below).
+
+```shell
+make docker.build-ingress   # Build the ingress container.
+make docker.build-backend   # Build the backend application server.
+make docker.build-validator # Build the validator container.
+make docker.run-ingress     # Run the ingress container.
+make docker.run-backend     # Run the backend container.
+make docker.run-validator   # Run the validator container.
+```
+
+Open browser to <http://localhost:8080>. Click click click.
+
+### Deploy
+
+TODO this bit is still in progress
+
+
+
+
 
 ## Todo
 
