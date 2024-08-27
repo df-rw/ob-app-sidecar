@@ -5,50 +5,33 @@ APP_BACKEND=${APP}-backend
 APP_VALIDATOR=${APP}-validator
 
 .PHONY: \
-	docker.build-ingress \
-	docker.build-backend \
-	docker.build-validator \
-	docker.run-ingress \
-	docker.run-backend \
-	docker.run-validator \
-	docker.inspect-ingress \
-	docker.inspect-backend \
-	docker.inspect-validator
+	up \
+	down
 
 .DEFAULT_GOAL=help
 
-docker.build: docker.build-ingress docker.build-backend docker.build-validator
+docker.build: docker.build.ingress docker.build.backend docker.build.validator # Build all containers.
+	npm run build # Build Observable Framework application
 
-docker.build-ingress: # build the ingress container
-	npm run build # build observable framework static site
-	docker build --tag ${APP_INGRESS} -f Dockerfile.local-ingress .
+docker.build.ingress: # Build just the ingress container.
+	docker compose build ingress
 
-docker.build-backend: # build the backend application container
-	docker build --tag ${APP_BACKEND} -f Dockerfile.local-backend .
+docker.build.validator: # Build just the validator container.
+	docker compose build validator
 
-docker.build-validator: # build the validator container
-	# docker build --tag ${APP_VALIDATOR} -f Dockerfile.local-validator .
+docker.build.backend: # Build just the backend container.
+	docker compose build backend
 
-docker.run-ingress: # run the ingress container
-	docker run -p 8080:8080 ${APP_INGRESS}:latest
+docker.up: # Run docker compose up
+	docker compose up
 
-docker.run-backend: # run the backend container
-	docker run -p 8082:8082 ${APP_BACKEND}:latest
+docker.down: # Run docker compose down
+	docker compose down
 
-docker.run-validator: # run the validator container
-	# docker run -p 8082:8082 ${APP_VALIDATOR}:latest
-
-docker.inspect-ingress: # inspect the ingress container
-	# docker run -it ${APP_INGRESS}:latest sh
-
-docker.inspect-backend: # inspect the backend container
-	# docker run -it ${APP_BACKEND}:latest sh
-
-docker.inspect-validator: # inspect the validator container
-	# docker run -it ${APP_VALIDATOR}:latest sh
+docker.clean: docker.down # Clear out all the docker things.
 
 cloudbuild: # do a deploy onto cloudbuild
 	# @echo "TODO send everything to cloud build"
 
 help: # me
-	@grep '^[a-z]' Makefile | sed -e 's/ #//'
+	@grep '^[a-z]' Makefile | sed -e 's/^\(.*\): .*# \(.*\)/\1: \2/'

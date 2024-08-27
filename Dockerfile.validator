@@ -1,0 +1,17 @@
+# The validator container is a Go application.
+
+# Application build.
+FROM golang:1.23 AS stage-build
+WORKDIR /usr/src/app
+COPY cmd/cli ./cmd/cli
+COPY go.mod ./
+RUN go mod tidy
+RUN go build -v -o /usr/local/bin/app ob-app-sidecar/cmd/cli
+
+# Final image from build.
+FROM golang:1.23 AS stage-final
+WORKDIR /go
+USER nobody:nogroup
+COPY --from=stage-build --chown=nobody:nogroup /usr/local/bin/app ./bin
+EXPOSE 8082
+CMD ["app"]

@@ -35,7 +35,7 @@ func (app *Application) validatorAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := flag.Int("p", 49152, "webserver port")
+	port := flag.Int("p", 8081, "webserver port")
 	flag.Parse()
 
 	app := New()

@@ -1,7 +1,7 @@
 # The ingress container runs nginx, which passes off requests to either
 # Observable Framework or the backend application.
 FROM nginx:latest
-COPY ./nginx-prod.conf /etc/nginx/nginx.conf
+COPY ./nginx-docker.conf /etc/nginx/nginx.conf
 
 # Copy over the Observable Framework application.
 COPY ./dist /usr/share/nginx/html
