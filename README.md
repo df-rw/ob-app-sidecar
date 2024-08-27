@@ -9,6 +9,34 @@ sample application, onto [Google Cloud Run](https://cloud.google.com/run) in a
 statically built Observable Framework application; the backend application and
 the validator application are separate sidecars.
 
+```
+                ----------------------------------------------------------------------------------
+                |                                                                                |
+                | -------------------------------------------------    ------------------------- |
+                | |              -------------------------------- |    |                       | |
+----------      | |              |  Observable Framework static | |    |       validator       | |
+| client | <--> | | --------------- site served from the proxy  | |<-->|      application      | |
+----------      | | | nginx proxy |------------------------------ |    |         server        | |
+                | | ---------------                               |    |                       | |
+                | -------------------------------------------------    ------------------------- |
+                |               ingress container                           sidecar container    |
+                |                       ^                                                        |
+                |                       |                                                        |
+                |                       v                                                        |
+                | -----------------------------------------------                                |
+                | |                                             |                                |
+                | |        backend application server           |                                |
+                | |                                             |                                |
+                | -----------------------------------------------                                |
+                |                sidecar container                                               |
+                |                                                                                |
+                ----------------------------------------------------------------------------------
+                                                   Cloud Run instance
+
+
+
+```
+
 This is based on <https://github.com/df-rw/ob-app>.
 
 ## Aside: What is a validator application?
@@ -28,33 +56,43 @@ application.
 
 ## Prerequisites
 
+To run this demo:
+
 - Go (`brew install go` or [rtfm](https://go.dev/doc/install))
 - nginx (`brew install nginx` or [rtfm](https://nginx.org/en/docs/install.html))
 
 ### Optional
 
-- [air](https://github.com/air-verse/air) for live-reloading the Go backend
-  application:
+- [air](https://github.com/air-verse/air) for rebuilding the Go backend
+  application on file changes during development:
 
 ```shell
 go install github.com/air-verse/air@latest
 ```
 
-Configuration for `air` is in the repo as `./.air.toml`. Replace the `go run
-./cmd/web/*.go -p 8082` line with `air` to get live reloading when a backend
-file changes.
+Configuration for air is in `./.air.toml`. Replace the `go run ./cmd/web/*.go
+-p 8082` line (below in **Development**) with `air` to get application rebuild
+when a backend file changes.
 
 ## Install
 
 ```shell
 git clone https://github.com/df-rw/ob-app-sidecar
 cd ob-app-sidecar
-npm install
+npm install # install modules for Observable Framework
 ```
 
 ### Development: write your application
 
-Create your application by editing your front and backends.
+To get your development environment up and running:
+
+```shell
+go run ./cmd/web/*.go -p 6082        # (or "air") Start backend server.
+npm run dev -- --port 6081 --no-open # Start Observable framework (diff terminal).
+nginx -p . -c ./nginx-dev.conf       # Start nginx (diff terminal).
+```
+
+How traffic moves through the development environment:
 
 ```
 ----------      ---------------
@@ -69,11 +107,11 @@ Create your application by editing your front and backends.
                                  -------------------------------
 ```
 
-- nginx proxies requests from the client to either Observable Framework or the
-  application server.
 - `nginx-dev.conf` is configured to listen on port `6080` for inbound requests,
   and pass off to Observable on port `6081` and the application server on
   `6082`.
+- nginx proxies requests from the client to either Observable Framework or the
+  application server based on the URL of the request.
 - nginx also proxies the Observable Framework websocket connection for live-reloading
   of the frontend. Changes you make to Observable Framework code will be automatically
   reloaded in the client.
@@ -83,15 +121,14 @@ Create your application by editing your front and backends.
   and when required, but the idea is for validation to not get in the way while writing
   your application.
 
-To get your development environment up and running:
-
-```shell
-go run ./cmd/web/*.go -p 6082        # Start backend server (in one terminal).
-npm run dev -- --port 6081 --no-open # Start Observable framework (diff terminal).
-nginx -p . -c ./nginx-dev.conf       # Start nginx (diff terminal).
-```
-
 Open browser to <http://localhost:6080>. Click click click, hack hack hack.
+
+### Development: adding backend routes
+
+`nginx-dev.conf` and `nginx-prod.conf` are setup to pass any requests starting
+with `/api/` to the backend application. If there are specific paths you wish
+to forward to the backend application, adjust `nginx-dev.conf` and
+`nginx-prod.conf` to suit.
 
 ### Development: test your containers
 
@@ -103,7 +140,7 @@ each part of the whole in a separate container. We can do this with
                 -------------------------------------------------
                 |              -------------------------------- |    --------------------------
 ----------      |              |  Observable Framework static | |    |  --------------------  |
-| client | <--> | --------------- site mounted on the proxy   | |<-->|  | validator server |  |
+| client | <--> | --------------- site served from the proxy  | |<-->|  | validator server |  |
 ----------      | | nginx proxy |------------------------------ |    |  --------------------  |
                 | ---------------                               |    --------------------------
                 -------------------------------------------------       validator container
@@ -121,16 +158,17 @@ each part of the whole in a separate container. We can do this with
 
 - `nginx-prod.conf` is configured to listen on port `8080` for inbound
   requests, pass off application requests to the application server on
-  `8081`, with the validation service listening on port `8082`.
+  `8082`, with the validation service listening on port `8081`.
 - `npm run build` will build the Observable Framework application and put the
   output in `./dist`. You can do this to check a build when you wish. `npm run
   build` will also be run when you run `make docker.build-ingress` to create
   the ingress container (see below).
 
 ```shell
-make docker.build-ingress   # Build the ingress container.
-make docker.build-backend   # Build the backend application server.
-make docker.build-validator # Build the validator container.
+make docker.build           # Build ingress, backend and validator containers.
+make docker.build-ingress   # Build only the ingress container.
+make docker.build-backend   # Build only the backend application server.
+make docker.build-validator # Build only the validator container.
 make docker.run-ingress     # Run the ingress container.
 make docker.run-backend     # Run the backend container.
 make docker.run-validator   # Run the validator container.

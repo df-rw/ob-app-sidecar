@@ -17,12 +17,14 @@ APP_VALIDATOR=${APP}-validator
 
 .DEFAULT_GOAL=help
 
+docker.build: docker.build-ingress docker.build-backend docker.build-validator
+
 docker.build-ingress: # build the ingress container
 	npm run build # build observable framework static site
 	docker build --tag ${APP_INGRESS} -f Dockerfile.local-ingress .
 
 docker.build-backend: # build the backend application container
-	# docker build --tag ${APP_BACKEND} -f Dockerfile.local-backend .
+	docker build --tag ${APP_BACKEND} -f Dockerfile.local-backend .
 
 docker.build-validator: # build the validator container
 	# docker build --tag ${APP_VALIDATOR} -f Dockerfile.local-validator .
@@ -31,7 +33,7 @@ docker.run-ingress: # run the ingress container
 	docker run -p 8080:8080 ${APP_INGRESS}:latest
 
 docker.run-backend: # run the backend container
-	# docker run -p 8081:8081 ${APP_BACKEND}:latest
+	docker run -p 8082:8082 ${APP_BACKEND}:latest
 
 docker.run-validator: # run the validator container
 	# docker run -p 8082:8082 ${APP_VALIDATOR}:latest

@@ -51,6 +51,13 @@ func main() {
 	mux.HandleFunc("POST /api/todos/add", app.TodosAdd)
 	mux.HandleFunc("POST /api/todos/toggle/{id}", app.TodosToggle)
 
+	/*
+		mux.HandleFunc("GET /api/dog/name", app.dogName)
+		mux.HandleFunc("GET /api/dog/breed", app.dogBreed)
+		mux.HandleFunc("GET /api/dog/colour", app.dogColour)
+		mux.HandleFunc("GET /api/dog/save", app.dogSave)
+	*/
+
 	fmt.Println("Listening on port", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }
