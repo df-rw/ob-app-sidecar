@@ -1,4 +1,4 @@
-APP=ob-test
+APP=ob-app-sidecar
 
 APP_INGRESS=${APP}-ingress
 APP_BACKEND=${APP}-backend
@@ -10,8 +10,7 @@ APP_VALIDATOR=${APP}-validator
 
 .DEFAULT_GOAL=help
 
-docker.build: docker.build.ingress docker.build.backend docker.build.validator # Build all containers.
-	npm run build # Build Observable Framework application
+docker.build: build.of docker.build.ingress docker.build.backend docker.build.validator # Build front and back ends.
 
 docker.build.ingress: # Build just the ingress container.
 	docker compose build ingress
@@ -29,6 +28,15 @@ docker.down: # Run docker compose down
 	docker compose down
 
 docker.clean: docker.down # Clear out all the docker things.
+	docker image rm -f ${APP_INGRESS}
+	docker image rm -f ${APP_BACKEND}
+	docker image rm -f ${APP_VALIDATOR}
+
+clean: docker.clean
+	rm -rf ./dist
+
+build.of: # Build the Observable Framework application.
+	npm run build
 
 cloudbuild: # do a deploy onto cloudbuild
 	# @echo "TODO send everything to cloud build"

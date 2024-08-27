@@ -37,7 +37,7 @@ the validator application are separate sidecars.
 
 ```
 
-This is based on <https://github.com/df-rw/ob-app>.
+The application is based on <https://github.com/df-rw/ob-app>.
 
 ## Aside: What is a validator application?
 
@@ -125,10 +125,9 @@ Open browser to <http://localhost:6080>. Click click click, hack hack hack.
 
 ### Development: adding backend routes
 
-`nginx-dev.conf` and `nginx-prod.conf` are setup to pass any requests starting
-with `/api/` to the backend application. If there are specific paths you wish
-to forward to the backend application, adjust `nginx-dev.conf` and
-`nginx-prod.conf` to suit.
+`nginx-dev.conf` is setup to pass any requests starting with `/api/` to the
+backend application. If there are specific paths you wish to forward to the
+backend application, adjust `nginx-dev.conf` to suit.
 
 ### Development: test your containers
 
@@ -156,36 +155,19 @@ each part of the whole in a separate container. We can do this with
                               application container
 ```
 
-- `nginx-prod.conf` is configured to listen on port `8080` for inbound
+- We setup the containers using [docker compose](https://docs.docker.com/compose/).
+  Configuration is in `compose.yaml`.
+- `nginx-docker.conf` is configured to listen on port `8080` for inbound
   requests, pass off application requests to the application server on
   `8082`, with the validation service listening on port `8081`.
-- `npm run build` will build the Observable Framework application and put the
-  output in `./dist`. You can do this to check a build when you wish. `npm run
-  build` will also be run when you run `make docker.build-ingress` to create
-  the ingress container (see below).
-
-```shell
-make docker.build           # Build ingress, backend and validator containers.
-make docker.build-ingress   # Build only the ingress container.
-make docker.build-backend   # Build only the backend application server.
-make docker.build-validator # Build only the validator container.
-make docker.run-ingress     # Run the ingress container.
-make docker.run-backend     # Run the backend container.
-make docker.run-validator   # Run the validator container.
-```
+- `make docker.build` will build the observable Framework frontend application
+  and all backends.
+- `make docker.up` will run everything.
+- `make docker.down` will stop everything.
+- `make docker.clean` will kill everything.
 
 Open browser to <http://localhost:8080>. Click click click.
 
-### Deploy
+### Deploy to cloudbuild
 
-TODO this bit is still in progress
-
-
-
-
-
-## Todo
-
-- Clean URLs in Observable Framework are turned off. This is so our sample
-  application deployment is correct. Routing and clean URLs will depend on
-  how the target webserver is setup.
+TODO
