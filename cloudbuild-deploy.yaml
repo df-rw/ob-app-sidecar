@@ -1,0 +1,34 @@
+steps:
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
+  args: [
+    'run', 'deploy', '${_SERVICE}',
+    '--allow-unauthenticated',
+    '--ingress', 'all',
+    '--region', '${LOCATION}',
+    '--container', '${_IMAGE_INGRESS}',
+    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
+    '--port', '${_PORT}',
+    '--depends-on', '${_IMAGE_BACKEND},${_IMAGE_VALIDATOR}',
+    '--container', '${_IMAGE_BACKEND}',
+    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
+    '--container', '${_IMAGE_VALIDATOR}',
+    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
+  ]
+
+substitutions:
+    _SERVICE: ob-app-sidecar
+    _REPO: ob-app-sidecar-repo
+    _PORT: '8080'
+    _IMAGE_INGRESS: ob-app-sidecar-develop-ingress
+    _IMAGE_BACKEND: ob-app-sidecar-develop-backend
+    _IMAGE_VALIDATOR: ob-app-sidecar-develop-validator
+
+images: [
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
+]
+
+options:
+  logging: CLOUD_LOGGING_ONLY

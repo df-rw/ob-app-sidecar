@@ -1,0 +1,57 @@
+steps:
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-t', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
+    '-f', './Dockerfile.ingress',
+    '--network=cloudbuild',
+    '--platform', 'linux/amd64',
+    '.'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-t', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
+    '-f', './Dockerfile.backend',
+    '--network=cloudbuild',
+    '--platform', 'linux/amd64',
+    '.'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'build', '-t', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}',
+    '-f', './Dockerfile.backend',
+    '--network=cloudbuild',
+    '--platform', 'linux/amd64',
+    '.'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'push', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'push', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  args: [
+    'push', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
+  ]
+
+substitutions:
+    _REPO: ob-app-sidecar-repo
+    _IMAGE_INGRESS: ob-app-sidecar-develop-ingress
+    _IMAGE_BACKEND: ob-app-sidecar-develop-backend
+    _IMAGE_VALIDATOR: ob-app-sidecar-develop-validator
+
+images: [
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
+  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
+]
+
+options:
+  logging: CLOUD_LOGGING_ONLY
