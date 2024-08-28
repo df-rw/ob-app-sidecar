@@ -7,13 +7,11 @@ COPY cmd/web ./cmd/web
 COPY templates ./templates
 COPY go.mod ./
 RUN go mod tidy
-RUN go build -v -o /usr/local/bin/app ob-app-sidecar/cmd/web
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/app ob-app-sidecar/cmd/web
 
 # Final image from build.
-FROM golang:1.23 AS stage-final
-WORKDIR /go
-USER nobody:nogroup
-COPY --from=stage-build --chown=nobody:nogroup /usr/local/bin/app ./bin
-COPY --from=stage-build --chown=nobody:nogroup /usr/src/app/templates ./templates
+FROM scratch AS stage-final
+COPY --from=stage-build /usr/local/bin/app /
+COPY --from=stage-build /usr/src/app/templates /templates
 EXPOSE 8082
-CMD ["app"]
+CMD ["/app"]

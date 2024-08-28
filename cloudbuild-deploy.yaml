@@ -6,29 +6,36 @@ steps:
     '--allow-unauthenticated',
     '--ingress', 'all',
     '--region', '${LOCATION}',
-    '--container', '${_IMAGE_INGRESS}',
-    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
+
+    '--container', '${_NAME_INGRESS}',
+    '--image', '${_IMAGE_INGRESS}',
     '--port', '${_PORT}',
-    '--depends-on', '${_IMAGE_BACKEND},${_IMAGE_VALIDATOR}',
-    '--container', '${_IMAGE_BACKEND}',
-    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
-    '--container', '${_IMAGE_VALIDATOR}',
-    '--image', '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
+    '--depends-on', '${_NAME_BACKEND},${_NAME_VALIDATOR}',
+
+    '--container', '${_NAME_VALIDATOR}',
+    '--image', '${_IMAGE_VALIDATOR}',
+
+    '--container', '${_NAME_BACKEND}',
+    '--image', '${_IMAGE_BACKEND}',
   ]
 
 substitutions:
     _SERVICE: ob-app-sidecar
-    _REPO: ob-app-sidecar-repo
     _PORT: '8080'
-    _IMAGE_INGRESS: ob-app-sidecar-develop-ingress
-    _IMAGE_BACKEND: ob-app-sidecar-develop-backend
-    _IMAGE_VALIDATOR: ob-app-sidecar-develop-validator
+    _REPO: ob-app-sidecar-repo
+    _REGISTRY: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}
+    _NAME_INGRESS: ob-app-sidecar-develop-ingress
+    _NAME_BACKEND: ob-app-sidecar-develop-backend
+    _NAME_VALIDATOR: ob-app-sidecar-develop-validator
+    _IMAGE_INGRESS: ${_REGISTRY}/${_NAME_INGRESS}
+    _IMAGE_BACKEND: ${_REGISTRY}/${_NAME_BACKEND}
+    _IMAGE_VALIDATOR: ${_REGISTRY}/${_NAME_VALIDATOR}
 
-images: [
-  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_INGRESS}',
-  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_BACKEND}',
-  '${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}/${_IMAGE_VALIDATOR}'
-]
+images:
+  - ${_IMAGE_INGRESS}
+  - ${_IMAGE_BACKEND}
+  - ${_IMAGE_VALIDATOR}
 
 options:
+  dynamic_substitutions: true
   logging: CLOUD_LOGGING_ONLY

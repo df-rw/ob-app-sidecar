@@ -6,12 +6,10 @@ WORKDIR /usr/src/app
 COPY cmd/cli ./cmd/cli
 COPY go.mod ./
 RUN go mod tidy
-RUN go build -v -o /usr/local/bin/app ob-app-sidecar/cmd/cli
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/app ob-app-sidecar/cmd/cli
 
 # Final image from build.
-FROM golang:1.23 AS stage-final
-WORKDIR /go
-USER nobody:nogroup
-COPY --from=stage-build --chown=nobody:nogroup /usr/local/bin/app ./bin
+FROM scratch AS stage-final
+COPY --from=stage-build /usr/local/bin/app /
 EXPOSE 8082
-CMD ["app"]
+CMD ["/app"]
