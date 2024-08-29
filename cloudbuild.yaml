@@ -11,41 +11,39 @@ steps:
   ]
 
 - name: 'gcr.io/cloud-builders/docker'
-  id: BUILD_BACKEND
-  waitFor: ['-']
-  args: [
-    'build', '-t', '${_IMAGE_BACKEND}',
-    '-f', './Dockerfile.backend',
-    '--network=cloudbuild',
-    '--platform', 'linux/amd64',
-    '.'
-  ]
-
-- name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
   waitFor: BUILD_INGRESS
   args: [
     'push', '${_IMAGE_INGRESS}'
   ]
 
-- name: 'gcr.io/cloud-builders/docker'
-  id: PUSH_BACKEND
-  waitFor: BUILD_BACKEND
+- name: 'alpine'
+  env:
+    - "SERVICE=${_SERVICE}"
+    - "IMAGE_INGRESS=${_IMAGE_INGRESS}"
+    - "PORT_INGRESS=${_PORT_INGRESS}"
+  script: |
+    sed -i s@%SERVICE%@${SERVICE}@g run-service.yaml
+    sed -i s@%IMAGE_INGRESS%@${IMAGE_INGRESS}@g run-service.yaml
+    sed -i s@%PORT_INGRESS%@${PORT_INGRESS}@g run-service.yaml
+
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  entrypoint: 'gcloud'
   args: [
-    'push', '${_IMAGE_BACKEND}'
+    'run', 'services', 'replace', 'run-service.yaml',
+    '--region', '${LOCATION}',
   ]
 
 substitutions:
+    _SERVICE: ob-app-sidecar
     _REPO: ob-app-sidecar-repo
     _REGISTRY: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}
-    _NAME_INGRESS: ob-app-sidecar-develop-ingress
-    _NAME_BACKEND: ob-app-sidecar-develop-backend
+    _PORT_INGRESS: '8080'
+    _NAME_INGRESS: ob-app-sidecar-ingress
     _IMAGE_INGRESS: ${_REGISTRY}/${_NAME_INGRESS}
-    _IMAGE_BACKEND: ${_REGISTRY}/${_NAME_BACKEND}
 
 images:
   - ${_IMAGE_INGRESS}
-  - ${_IMAGE_BACKEND}
 
 options:
   dynamic_substitutions: true

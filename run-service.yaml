@@ -6,17 +6,9 @@ metadata:
     run.googleapis.com/ingress: all
 spec:
   template:
-    metadata:
-      annotations:
-        run.googleapis.com/container-dependencies: '{"ingress": ["backend"]}'
     spec:
       containers:
         - image: "%IMAGE_INGRESS%"
           name: ingress
           ports:
             - containerPort: '%PORT_INGRESS%'
-        - image: "%IMAGE_BACKEND%"
-          name: backend
-          startupProbe:
-            tcpSocket:
-              port: '%PORT_BACKEND%'
