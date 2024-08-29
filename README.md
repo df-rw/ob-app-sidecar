@@ -60,6 +60,11 @@ For this demo:
 
 - Go (`brew install go` or [rtfm](https://go.dev/doc/install))
 - nginx (`brew install nginx` or [rtfm](https://nginx.org/en/docs/install.html))
+- .env (see `.env-sample`) with:
+  - `GOOGLE_REGION` set to a valid GCP region;
+  - `GOOGLE_CLOUD_PROJECT` set to valid GCP project name;
+  - `GOOGLE_CLOUD_SERVICE_ACCOUNT` set to a service account that can do Cloud Build and
+    Cloud Run things.
 
 ### Optional
 
@@ -174,4 +179,44 @@ Open browser to <http://localhost:8080>. Click click click.
 
 ### Deploy to cloudbuild
 
-TODO
+To deploy the application to GCP using cloudbuild:
+
+- `make cloudbuild`
+
+## Notes
+
+### Why are there so many Dockerfiles?
+
+| Filename | Porpoise |
+| --- | --- |
+| `Dockerfile.backend` | Builds the container for the backend application. |
+| `Dockerfile.ingress-gcp` | Builds the ingress container on GCP. |
+| `Dockerfile.ingress-local` | Builds the ingress container for local (Docker) use. |
+| `Dockerfile.validator` | Builds the container for the validator application. |
+
+`Dockerfile.ingress-gcp` differs from `Dockerfile.ingress-local` as they
+reference (slightly) different nginx configurations (see below).
+
+### Why are there so many nginx configurations?
+
+| Filename | Porpoise |
+| --- | --- |
+| `nginx-dev.conf` | nginx configuration for local development environment. |
+| `nginx-docker.conf` | nginx configuration for local Docker environment. |
+| `nginx-gcp.conf` | nginx configuration for GCP environment. |
+
+Docker compose creates a network for the container. This allows internal
+applications to refer to each other by service name as specified in
+`compose.yaml`. For instance, we can refer to the backend application with
+the service name `backend`. `nginx-docker.conf` is setup like this.
+
+This differs to GCP which uses localhost and unique port numbers to refer to
+services. For instance, we refer to the backend application on server
+`127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is setup
+like this.
+
+## TODO
+
+- IAP instructions.
+- Validator application setup and deploy on Cloud Build as another sidecar.
+- Rewrite nginx configuration based on local (Docker) deploy or GCP deploy.
