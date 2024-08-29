@@ -1,0 +1,27 @@
+apiVersion: serving.knative.dev/v1
+kind: Service
+metadata:
+  name: %SERVICE%
+  annotations:
+    run.googleapis.com/ingress: all
+spec:
+  template:
+    metadata:
+      annotations:
+        run.googleapis.com/container-dependencies: '{"ingress": ["validator", "backend"]}'
+    spec:
+      containers:
+        - image: "%IMAGE_INGRESS%"
+          name: ingress
+          ports:
+            - containerPort: '%PORT_INGRESS%'
+        - image: "%IMAGE_VALIDATOR%"
+          name: validator
+          startupProbe:
+            tcpSocket:
+              port: '%PORT_VALIDATOR%'
+        - image: "%IMAGE_BACKEND%"
+          name: backend
+          startupProbe:
+            tcpSocket:
+              port: '%PORT_BACKEND%'

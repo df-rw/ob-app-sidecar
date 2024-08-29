@@ -58,6 +58,6 @@ func main() {
 		mux.HandleFunc("GET /api/dog/save", app.dogSave)
 	*/
 
-	fmt.Println("Listening on port", *port)
+	fmt.Println("Backend listening on port", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }

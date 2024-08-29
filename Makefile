@@ -44,13 +44,13 @@ docker.clean: docker.down # Clear out all the docker things.
 
 clean: docker.clean
 
-cloudbuild: # manual deploy onto cloudbuild
+cloudbuild.images: # Build images and send to Artificat Registry.
 	gcloud builds submit \
 		--region=${GOOGLE_REGION} \
 		--service-account=projects/${GOOGLE_CLOUD_PROJECT}/serviceAccounts/${GOOGLE_CLOUD_SERVICE_ACCOUNT} \
-		--config=cloudbuild-dev.yaml
+		--config=cloudbuild-images.yaml
 
-cloudbuild.test-deploy:
+cloudbuild.test-deploy: # Start service using previously built images.
 	gcloud builds submit \
 		--region=${GOOGLE_REGION} \
 		--service-account=projects/${GOOGLE_CLOUD_PROJECT}/serviceAccounts/${GOOGLE_CLOUD_SERVICE_ACCOUNT} \

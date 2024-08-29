@@ -43,6 +43,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.validatorAuth)
 
-	fmt.Println("Listening on port", *port)
+	fmt.Println("Validator listening on port", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }
