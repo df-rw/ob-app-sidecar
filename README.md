@@ -205,15 +205,17 @@ reference (slightly) different nginx configurations (see below).
 | `nginx-docker.conf` | nginx configuration for local Docker environment. |
 | `nginx-gcp.conf` | nginx configuration for GCP environment. |
 
-Docker compose creates a network for the container. This allows internal
+Docker compose [creates a network for the
+container](https://docs.docker.com/compose/networking/). This allows internal
 applications to refer to each other by service name as specified in
-`compose.yaml`. For instance, we can refer to the backend application with
-the service name `backend`. `nginx-docker.conf` is setup like this.
+`compose.yaml`. For instance, we can refer to the backend application with the
+service name `backend`. `nginx-docker.conf` is setup like this.
 
-This differs to GCP which uses localhost and unique port numbers to refer to
-services. For instance, we refer to the backend application on server
-`127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is setup
-like this.
+This differs to GCP which uses [localhost and unique port
+numbers](https://cloud.google.com/run/docs/internet-proxy-nginx-sidecar#configure_the_nginx_ingress_container)
+to refer to services. For instance, we refer to the backend application on
+server `127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is
+setup like this.
 
 ## TODO
 
