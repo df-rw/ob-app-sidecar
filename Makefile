@@ -20,6 +20,9 @@ APP_VALIDATOR=${APP}-validator
 
 .DEFAULT_GOAL=help
 
+help: # me
+	@grep '^[a-z]' Makefile | sed -e 's/^\(.*\): .*# \(.*\)/\1: \2/'
+
 docker.build: docker.build.ingress docker.build.backend docker.build.validator # Build front and back ends.
 
 docker.build.ingress: # Build just the ingress container.
@@ -42,13 +45,10 @@ docker.clean: docker.down # Clear out all the docker things.
 	docker image rm -f ${APP_BACKEND}
 	docker image rm -f ${APP_VALIDATOR}
 
-clean: docker.clean
+clean: docker.clean # Clean things.
 
-cloudbuild:
+cloudbuild: # Build as a Google Cloud Run serivce.
 	gcloud builds submit \
 		--region=${GOOGLE_REGION} \
 		--service-account=projects/${GOOGLE_CLOUD_PROJECT}/serviceAccounts/${GOOGLE_CLOUD_SERVICE_ACCOUNT} \
 		--config=cloudbuild.yaml
-
-help: # me
-	@grep '^[a-z]' Makefile | sed -e 's/^\(.*\): .*# \(.*\)/\1: \2/'

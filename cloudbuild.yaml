@@ -1,7 +1,6 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_INGRESS
-  waitFor: ['-']
   args: [
     'build', '-t', '${_IMAGE_INGRESS}',
     '-f', './Dockerfile.ingress-gcp',
@@ -11,23 +10,44 @@ steps:
   ]
 
 - name: 'gcr.io/cloud-builders/docker'
+  id: BUILD_BACKEND
+  args: [
+    'build', '-t', '${_IMAGE_BACKEND}',
+    '-f', './Dockerfile.backend',
+    '--network=cloudbuild',
+    '--platform', 'linux/amd64',
+    '.'
+  ]
+
+- name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
-  waitFor: BUILD_INGRESS
   args: [
     'push', '${_IMAGE_INGRESS}'
   ]
 
+- name: 'gcr.io/cloud-builders/docker'
+  id: PUSH_BACKEND
+  args: [
+    'push', '${_IMAGE_BACKEND}'
+  ]
+
 - name: 'alpine'
+  id: SET_SERVICE
   env:
     - "SERVICE=${_SERVICE}"
     - "IMAGE_INGRESS=${_IMAGE_INGRESS}"
     - "PORT_INGRESS=${_PORT_INGRESS}"
+    - "IMAGE_BACKEND=${_IMAGE_BACKEND}"
+    - "PORT_BACKEND=${_PORT_BACKEND}"
   script: |
     sed -i s@%SERVICE%@${SERVICE}@g run-service.yaml
     sed -i s@%IMAGE_INGRESS%@${IMAGE_INGRESS}@g run-service.yaml
     sed -i s@%PORT_INGRESS%@${PORT_INGRESS}@g run-service.yaml
+    sed -i s@%IMAGE_BACKEND%@${IMAGE_BACKEND}@g run-service.yaml
+    sed -i s@%PORT_BACKEND%@${PORT_BACKEND}@g run-service.yaml
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+  id: RUN_SERVICE
   entrypoint: 'gcloud'
   args: [
     'run', 'services', 'replace', 'run-service.yaml',
@@ -41,9 +61,13 @@ substitutions:
     _PORT_INGRESS: '8080'
     _NAME_INGRESS: ob-app-sidecar-ingress
     _IMAGE_INGRESS: ${_REGISTRY}/${_NAME_INGRESS}
+    _PORT_BACKEND: '8082'
+    _NAME_BACKEND: ob-app-sidecar-backend
+    _IMAGE_BACKEND: ${_REGISTRY}/${_NAME_BACKEND}
 
 images:
   - ${_IMAGE_INGRESS}
+  - ${_IMAGE_BACKEND}
 
 options:
   dynamic_substitutions: true
