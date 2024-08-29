@@ -56,7 +56,7 @@ application.
 
 ## Prerequisites
 
-To run this demo:
+For this demo:
 
 - Go (`brew install go` or [rtfm](https://go.dev/doc/install))
 - nginx (`brew install nginx` or [rtfm](https://nginx.org/en/docs/install.html))
@@ -70,9 +70,7 @@ To run this demo:
 go install github.com/air-verse/air@latest
 ```
 
-Configuration for air is in `./.air.toml`. Replace the `go run ./cmd/web/*.go
--p 8082` line (below in **Development**) with `air` to get application rebuild
-when a backend file changes.
+Configuration for air is in `./.air.toml`.
 
 ## Install
 
@@ -82,9 +80,12 @@ cd ob-app-sidecar
 npm install # install modules for Observable Framework
 ```
 
-### Development: write your application
+### Local development
 
-To get your development environment up and running:
+For ease of development, each of the nginx, Observable Framework and backend
+servers should be started in separate terminals. This allows easy log viewing
+of each individual service, as well as restarting only individual services if
+required:
 
 ```shell
 go run ./cmd/web/*.go -p 6082        # (or "air") Start backend server.
@@ -98,13 +99,17 @@ How traffic moves through the development environment:
 ----------      ---------------
 | client | <--> | nginx proxy |
 ----------      ---------------
-                     ^    ^
+              :6080  ^    ^
+                     |    |
                      |    |      ----------------------
                      |    -----> | backend app server |
                      |           ----------------------
+                     |        :6082
+                     |
                      |           -------------------------------
                      ----------> | Observable Framework server |
                                  -------------------------------
+                              :6081
 ```
 
 - `nginx-dev.conf` is configured to listen on port `6080` for inbound requests,
@@ -123,13 +128,13 @@ How traffic moves through the development environment:
 
 Open browser to <http://localhost:6080>. Click click click, hack hack hack.
 
-### Development: adding backend routes
+### Adding backend routes
 
 `nginx-dev.conf` is setup to pass any requests starting with `/api/` to the
 backend application. If there are specific paths you wish to forward to the
 backend application, adjust `nginx-dev.conf` to suit.
 
-### Development: test your containers
+### Testing containers
 
 Once you're happy with your application, you may wish to test it locally with
 each part of the whole in a separate container. We can do this with
@@ -142,8 +147,8 @@ each part of the whole in a separate container. We can do this with
 | client | <--> | --------------- site served from the proxy  | |<-->|  | validator server |  |
 ----------      | | nginx proxy |------------------------------ |    |  --------------------  |
                 | ---------------                               |    --------------------------
-                -------------------------------------------------       validator container
-                                ingress container
+                -------------------------------------------------  :8081  validator container
+             :8080              ingress container
                                         ^
                                         |
                                         v
@@ -152,7 +157,7 @@ each part of the whole in a separate container. We can do this with
                 |             | backend app server |            |
                 |             ----------------------            |
                 -------------------------------------------------
-                              application container
+             :8082           application container
 ```
 
 - We setup the containers using [docker compose](https://docs.docker.com/compose/).
@@ -160,9 +165,8 @@ each part of the whole in a separate container. We can do this with
 - `nginx-docker.conf` is configured to listen on port `8080` for inbound
   requests, pass off application requests to the application server on
   `8082`, with the validation service listening on port `8081`.
-- `make docker.build` will build the observable Framework frontend application
-  and all backends.
-- `make docker.up` will run everything.
+- `make docker.build` will build all containers.
+- `make docker.up` will run all containers.
 - `make docker.down` will stop everything.
 - `make docker.clean` will kill everything.
 
