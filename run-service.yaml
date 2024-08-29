@@ -8,18 +8,13 @@ spec:
   template:
     metadata:
       annotations:
-        run.googleapis.com/container-dependencies: '{"ingress": ["validator", "backend"]}'
+        run.googleapis.com/container-dependencies: '{"ingress": ["backend"]}'
     spec:
       containers:
         - image: "%IMAGE_INGRESS%"
           name: ingress
           ports:
             - containerPort: '%PORT_INGRESS%'
-        - image: "%IMAGE_VALIDATOR%"
-          name: validator
-          startupProbe:
-            tcpSocket:
-              port: '%PORT_VALIDATOR%'
         - image: "%IMAGE_BACKEND%"
           name: backend
           startupProbe:

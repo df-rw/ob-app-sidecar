@@ -4,7 +4,7 @@ steps:
   waitFor: ['-']
   args: [
     'build', '-t', '${_IMAGE_INGRESS}',
-    '-f', './Dockerfile.ingress',
+    '-f', './Dockerfile.ingress-gcp',
     '--network=cloudbuild',
     '--platform', 'linux/amd64',
     '.'
@@ -16,17 +16,6 @@ steps:
   args: [
     'build', '-t', '${_IMAGE_BACKEND}',
     '-f', './Dockerfile.backend',
-    '--network=cloudbuild',
-    '--platform', 'linux/amd64',
-    '.'
-  ]
-
-- name: 'gcr.io/cloud-builders/docker'
-  id: BUILD_VALIDATOR
-  waitFor: ['-']
-  args: [
-    'build', '-t', '${_IMAGE_VALIDATOR}',
-    '-f', './Dockerfile.validator',
     '--network=cloudbuild',
     '--platform', 'linux/amd64',
     '.'
@@ -46,24 +35,17 @@ steps:
     'push', '${_IMAGE_BACKEND}'
   ]
 
-- name: 'gcr.io/cloud-builders/docker'
-  id: PUSH_VALIDATOR
-  waitFor: BUILD_VALIDATOR
-  args: [
-    'push', '${_IMAGE_VALIDATOR}'
-  ]
-
 substitutions:
     _REPO: ob-app-sidecar-repo
     _REGISTRY: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}
-    _IMAGE_INGRESS: ${_REGISTRY}/ob-app-sidecar-develop-ingress
-    _IMAGE_BACKEND: ${_REGISTRY}/ob-app-sidecar-develop-backend
-    _IMAGE_VALIDATOR: ${_REGISTRY}/ob-app-sidecar-develop-validator
+    _NAME_INGRESS: ob-app-sidecar-develop-ingress
+    _NAME_BACKEND: ob-app-sidecar-develop-backend
+    _IMAGE_INGRESS: ${_REGISTRY}/${_NAME_INGRESS}
+    _IMAGE_BACKEND: ${_REGISTRY}/${_NAME_BACKEND}
 
 images:
   - ${_IMAGE_INGRESS}
   - ${_IMAGE_BACKEND}
-  - ${_IMAGE_VALIDATOR}
 
 options:
   dynamic_substitutions: true
