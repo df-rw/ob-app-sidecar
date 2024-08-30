@@ -1,0 +1,22 @@
+services:
+  ingress:
+    build:
+      dockerfile: ./Dockerfile.ingress-local
+    ports:
+      - "8080:8080"
+    depends_on:
+      - backend
+      - validator
+    env_file: ".env"
+
+  backend:
+    build:
+      dockerfile: ./Dockerfile.backend
+    ports:
+      - "8082:8082"
+
+  validator:
+    build:
+      dockerfile: ./Dockerfile.validator
+    ports:
+      - "8081:8081"

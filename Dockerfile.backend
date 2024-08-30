@@ -1,0 +1,17 @@
+# The backend container runs a Go application.
+
+# Application build.
+FROM golang:1.23 AS stage-build
+WORKDIR /usr/src/backend
+COPY cmd/web ./cmd/web
+COPY templates ./templates
+COPY go.mod ./
+RUN go mod tidy
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/backend ob-app-sidecar/cmd/web
+
+# Final image from build.
+FROM scratch AS stage-final
+COPY --from=stage-build /usr/local/bin/backend /
+COPY --from=stage-build /usr/src/backend/templates /templates
+EXPOSE 8082
+CMD ["/backend"]

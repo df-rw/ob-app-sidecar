@@ -35,7 +35,7 @@ func (app *Application) validatorAuth(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	port := flag.Int("p", 49152, "webserver port")
+	port := flag.Int("p", 8081, "webserver port")
 	flag.Parse()
 
 	app := New()
@@ -43,6 +43,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.validatorAuth)
 
-	fmt.Println("Listening on port", *port)
+	fmt.Println("Validator listening on port", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }
