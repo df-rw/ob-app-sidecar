@@ -19,7 +19,7 @@ func logger(f http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 		f.ServeHTTP(w, r)
-		log.Printf("%s %s %v\n", r.Method, r.URL.String(), time.Since(t))
+		log.Printf("Validator: %s %s %v\n", r.Method, r.URL.String(), time.Since(t))
 	}
 }
 
@@ -43,6 +43,6 @@ func main() {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/", app.validatorAuth)
 
-	fmt.Println("Validator listening on port", *port)
+	fmt.Println("Validator: listening on port", *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }
