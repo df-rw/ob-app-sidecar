@@ -78,17 +78,17 @@ steps:
   ]
 
 substitutions:
-  _SERVICE: ob-app-sidecar
-  _REPO: ob-app-sidecar-repo
+  _SERVICE: "ob-app-sidecar"
+  _REPO: "ob-app-sidecar-repo"
   _REGISTRY: "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}"
-  _PORT_INGRESS: '8080'
-  _NAME_INGRESS: ob-app-sidecar-ingress
+  _PORT_INGRESS: "8080"
+  _NAME_INGRESS: "ob-app-sidecar-ingress"
   _IMAGE_INGRESS: "${_REGISTRY}/${_NAME_INGRESS}:${COMMIT_SHA}"
-  _PORT_BACKEND: '8082'
-  _NAME_BACKEND: ob-app-sidecar-backend
+  _PORT_BACKEND: "8082"
+  _NAME_BACKEND: "ob-app-sidecar-backend"
   _IMAGE_BACKEND: "${_REGISTRY}/${_NAME_BACKEND}:${COMMIT_SHA}"
-  _PORT_VALIDATOR: '8081'
-  _NAME_VALIDATOR: ob-app-sidecar-validator
+  _PORT_VALIDATOR: "8081"
+  _NAME_VALIDATOR: "ob-app-sidecar-validator"
   _IMAGE_VALIDATOR: "${_REGISTRY}/${_NAME_VALIDATOR}:${COMMIT_SHA}"
 
 options:
