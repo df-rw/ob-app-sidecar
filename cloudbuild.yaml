@@ -1,73 +1,99 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_INGRESS
-  args: [
-    'build', '-t', '${_IMAGE_INGRESS}',
-    '-f', './Dockerfile.ingress-gcp',
-    '--network=cloudbuild',
-    '--platform', 'linux/amd64',
-    '.'
-  ]
+  args:
+    [
+      'build', '-t', '${_IMAGE_INGRESS}',
+      '-f', './Dockerfile.ingress-gcp',
+      '--network=cloudbuild',
+      '--platform', 'linux/amd64',
+      '.'
+    ]
 
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_BACKEND
-  args: [
-    'build', '-t', '${_IMAGE_BACKEND}',
-    '-f', './Dockerfile.backend',
-    '--network=cloudbuild',
-    '--platform', 'linux/amd64',
-    '.'
-  ]
+  args:
+    [
+      'build', '-t', '${_IMAGE_BACKEND}',
+      '-f', './Dockerfile.backend',
+      '--network=cloudbuild',
+      '--platform', 'linux/amd64',
+      '.'
+    ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: BUILD_VALIDATOR
+  args:
+    [
+      'build', '-t', '${_IMAGE_VALIDATOR}',
+      '-f', './Dockerfile.validator',
+      '--network=cloudbuild',
+      '--platform', 'linux/amd64',
+      '.'
+    ]
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
-  args: [
-    'push', '${_IMAGE_INGRESS}'
-  ]
+  args:
+    [
+      'push', '${_IMAGE_INGRESS}'
+    ]
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_BACKEND
-  args: [
-    'push', '${_IMAGE_BACKEND}'
-  ]
+  args:
+    [
+      'push', '${_IMAGE_BACKEND}'
+    ]
+
+- name: 'gcr.io/cloud-builders/docker'
+  id: PUSH_VALIDATOR
+  args:
+    [
+      'push', '${_IMAGE_VALIDATOR}'
+    ]
 
 - name: 'alpine'
   id: SET_SERVICE
   env:
-    - "SERVICE=${_SERVICE}"
-    - "IMAGE_INGRESS=${_IMAGE_INGRESS}"
-    - "PORT_INGRESS=${_PORT_INGRESS}"
-    - "IMAGE_BACKEND=${_IMAGE_BACKEND}"
-    - "PORT_BACKEND=${_PORT_BACKEND}"
+  - 'SERVICE=${_SERVICE}'
+  - 'IMAGE_INGRESS=${_IMAGE_INGRESS}'
+  - 'PORT_INGRESS=${_PORT_INGRESS}'
+  - 'IMAGE_BACKEND=${_IMAGE_BACKEND}'
+  - 'PORT_BACKEND=${_PORT_BACKEND}'
+  - 'IMAGE_VALIDATOR=${_IMAGE_VALIDATOR}'
+  - 'PORT_VALIDATOR=${_PORT_VALIDATOR}'
   script: |
     sed -i s@%SERVICE%@${SERVICE}@g run-service.yaml
     sed -i s@%IMAGE_INGRESS%@${IMAGE_INGRESS}@g run-service.yaml
     sed -i s@%PORT_INGRESS%@${PORT_INGRESS}@g run-service.yaml
     sed -i s@%IMAGE_BACKEND%@${IMAGE_BACKEND}@g run-service.yaml
     sed -i s@%PORT_BACKEND%@${PORT_BACKEND}@g run-service.yaml
+    sed -i s@%IMAGE_VALIDATOR%@${IMAGE_VALIDATOR}@g run-service.yaml
+    sed -i s@%PORT_VALIDATOR%@${PORT_VALIDATOR}@g run-service.yaml
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
   id: RUN_SERVICE
   entrypoint: 'gcloud'
-  args: [
-    'run', 'services', 'replace', 'run-service.yaml',
-    '--region', '${LOCATION}',
-  ]
+  args:
+    [
+      'run', 'services', 'replace', 'run-service.yaml',
+      '--region', '${LOCATION}',
+    ]
 
 substitutions:
-    _SERVICE: ob-app-sidecar
-    _REPO: ob-app-sidecar-repo
-    _REGISTRY: ${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}
-    _PORT_INGRESS: '8080'
-    _NAME_INGRESS: ob-app-sidecar-ingress
-    _IMAGE_INGRESS: ${_REGISTRY}/${_NAME_INGRESS}
-    _PORT_BACKEND: '8082'
-    _NAME_BACKEND: ob-app-sidecar-backend
-    _IMAGE_BACKEND: ${_REGISTRY}/${_NAME_BACKEND}
-
-images:
-  - ${_IMAGE_INGRESS}
-  - ${_IMAGE_BACKEND}
+  _SERVICE: "ob-app-sidecar"
+  _REPO: "ob-app-sidecar-repo"
+  _REGISTRY: "${LOCATION}-docker.pkg.dev/${PROJECT_ID}/${_REPO}"
+  _PORT_INGRESS: "8080"
+  _NAME_INGRESS: "ob-app-sidecar-ingress"
+  _IMAGE_INGRESS: "${_REGISTRY}/${_NAME_INGRESS}:${COMMIT_SHA}"
+  _PORT_BACKEND: "8082"
+  _NAME_BACKEND: "ob-app-sidecar-backend"
+  _IMAGE_BACKEND: "${_REGISTRY}/${_NAME_BACKEND}:${COMMIT_SHA}"
+  _PORT_VALIDATOR: "8081"
+  _NAME_VALIDATOR: "ob-app-sidecar-validator"
+  _IMAGE_VALIDATOR: "${_REGISTRY}/${_NAME_VALIDATOR}:${COMMIT_SHA}"
 
 options:
   dynamic_substitutions: true

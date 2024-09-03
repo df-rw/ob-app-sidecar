@@ -6,6 +6,7 @@ import (
 	"html/template"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -32,7 +33,7 @@ func logger(f http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 		f.ServeHTTP(w, r)
-		log.Printf("%s %s %v\n", r.Method, r.URL.String(), time.Since(t))
+		log.Printf("%s: %s %s %v\n", os.Args[0], r.Method, r.URL.String(), time.Since(t))
 	}
 }
 
@@ -58,6 +59,6 @@ func main() {
 		mux.HandleFunc("GET /api/dog/save", app.dogSave)
 	*/
 
-	fmt.Println("Backend listening on port", *port)
+	fmt.Printf("%s: listening on port %d\n", os.Args[0], *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
 }
