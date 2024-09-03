@@ -9,13 +9,13 @@ steps:
       '--platform', 'linux/amd64',
       '.'
     ]
+
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
   args:
     [
       'push', '${_IMAGE_INGRESS}'
     ]
-  waitFor: BUILD_INGRESS
 
 substitutions:
   _REPO: "ob-app-sidecar-repo"
