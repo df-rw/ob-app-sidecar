@@ -9,7 +9,6 @@ steps:
       '--platform', 'linux/amd64',
       '.'
     ]
-
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_BACKEND
   args:
@@ -20,7 +19,6 @@ steps:
       '--platform', 'linux/amd64',
       '.'
     ]
-
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
   args:
@@ -28,7 +26,6 @@ steps:
       'push', '${_IMAGE_INGRESS}'
     ]
   waitFor: BUILD_INGRESS
-
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_BACKEND
   args:
