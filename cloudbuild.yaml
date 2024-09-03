@@ -91,11 +91,6 @@ substitutions:
     _NAME_VALIDATOR: ob-app-sidecar-validator
     _IMAGE_VALIDATOR: ${_REGISTRY}/${_NAME_VALIDATOR}
 
-images:
-  - ${_IMAGE_INGRESS}
-  - ${_IMAGE_BACKEND}
-  - ${_IMAGE_VALIDATOR}
-
 options:
   dynamic_substitutions: true
   logging: CLOUD_LOGGING_ONLY
