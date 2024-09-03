@@ -1,20 +1,21 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_INGRESS
-  args: [
-    'build', '-t', '${_IMAGE_INGRESS}',
-    '-f', './Dockerfile.ingress-gcp',
-    '--network=cloudbuild',
-    '--platform', 'linux/amd64',
-    '.'
-  ]
+  args:
+    [
+      'build', '-t', '${_IMAGE_INGRESS}',
+      '-f', './Dockerfile.ingress-gcp',
+      '--network=cloudbuild',
+      '--platform', 'linux/amd64',
+      '.'
+    ]
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
-  args: [
-    'push', '${_IMAGE_INGRESS}'
-  ]
-  waitFor: BUILD_INGRESS
+  args:
+    [
+      'push', '${_IMAGE_INGRESS}'
+    ]
 
 substitutions:
   _REPO: "ob-app-sidecar-repo"
