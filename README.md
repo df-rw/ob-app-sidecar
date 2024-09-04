@@ -85,7 +85,7 @@ cd ob-app-sidecar
 npm install # install modules for Observable Framework
 ```
 
-### Local development
+## Local development
 
 For ease of development, each of the nginx, Observable Framework and backend
 servers should be started in separate terminals. This allows easy log viewing
@@ -133,13 +133,13 @@ How traffic moves through the development environment:
 
 Open browser to <http://localhost:6080>. Click click click, hack hack hack.
 
-### Adding backend routes
+## Adding backend routes
 
 `nginx-dev.conf` is setup to pass any requests starting with `/api/` to the
 backend application. If there are specific paths you wish to forward to the
 backend application, adjust `nginx-dev.conf` to suit.
 
-### Testing containers
+## Testing containers
 
 Once you're happy with your application, you may wish to test it locally with
 each part of the whole in a separate container. We can do this with
@@ -177,11 +177,52 @@ each part of the whole in a separate container. We can do this with
 
 Open browser to <http://localhost:8080>. Click click click.
 
-### Deploy to cloudbuild
+## Deploy to Cloud Build
 
-To deploy the application to GCP using cloudbuild:
+Configuration for Cloud Build can be found in `cloudbuild.yaml`. There is also
+configuration for the Cloud Run service in `run-service.yaml`. The intended
+deployment method is a push to a branch, so a Cloud Build trigger should be
+setup to run the deploy on this event.
 
-- `make cloudbuild`
+### Why two Cloud Build files?
+
+New Cloud Run services can be created and updated from Cloud Build using
+`gcloud run deploy`. However:
+
+- sidecar deployments using `gcloud run deploy` are [currently in
+  preview](https://cloud.google.com/run/docs/deploying#multicontainer-yaml);
+- sidecar start up order, which is required for our layout, requires specifying
+  both container dependencies and startup healthcheck probes.
+
+Container dependencies [can be specified using `gcloud run
+deploy`](https://cloud.google.com/run/docs/configuring/services/containers#gcloud_2)
+but [healthchecks cannot, and can only be specified via the console, Terraform
+or from a .yaml](https://cloud.google.com/run/docs/configuring/healthchecks).
+We use the service configuration in `run-service.yaml` to specify the startup
+probes.
+
+We can't specify the service configuration with `gcloud run deploy`, so have to
+use `gcloud services replace` instead to get a new service revision going. This
+will only run if the configuration supplied (ie. from `run-services.yaml`)
+changes between runs. This is good, as there is no point creating a new Cloud
+Run revision if nothing changed. This is bad however, if we make application
+changes (ie. to our images) and not to our service; we will build and upload
+new images, but the service won't deploy a new revision.
+
+`cloudbuild.yaml` is set to use the `COMMIT_SHA` as the tag for our images. This
+value will be whatever the commit checksum is given on the push to repo. This
+value is written in `run-sevice.yaml` on each deployment, so our service will
+get a new revision each deploy as the configuration has changed.
+
+- [Noted in this SO
+question](https://stackoverflow.com/questions/77550717/gcloud-run-replace-not-deploying-a-new-revision-when-no-change-in-the-file).
+- Worth noting that using `:latest` won't work; since this tag will never be
+  changed in `run-service.yaml` we end up in the same
+  uploaded-new-images-but-no-new-service-revision deployed basket.
+
+- Also worth noting that we don't get any errors if `gcloud services replace`
+  didn't start a new revision. You need to check the checksums on the images
+  via `gcloud run revisions describe...` to see what images are being used.
 
 ## Notes
 
