@@ -1,6 +1,7 @@
 steps:
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_INGRESS
+  waitFor: [ '-' ]
   args:
     [
       'build', '-t', '${_IMAGE_INGRESS}',
@@ -12,6 +13,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_BACKEND
+  waitFor: [ '-' ]
   args:
     [
       'build', '-t', '${_IMAGE_BACKEND}',
@@ -23,6 +25,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   id: BUILD_VALIDATOR
+  waitFor: [ '-' ]
   args:
     [
       'build', '-t', '${_IMAGE_VALIDATOR}',
@@ -34,6 +37,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_INGRESS
+  waitFor: [ 'BUILD_INGRESS' ]
   args:
     [
       'push', '${_IMAGE_INGRESS}'
@@ -41,6 +45,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_BACKEND
+  waitFor: [ 'BUILD_BACKEND' ]
   args:
     [
       'push', '${_IMAGE_BACKEND}'
@@ -48,6 +53,7 @@ steps:
 
 - name: 'gcr.io/cloud-builders/docker'
   id: PUSH_VALIDATOR
+  waitFor: [ 'BUILD_VALIDATOR' ]
   args:
     [
       'push', '${_IMAGE_VALIDATOR}'
