@@ -57,6 +57,7 @@ steps:
   id: SET_SERVICE
   env:
   - 'SERVICE=${_SERVICE}'
+  - 'SERVICE_ACCOUNT_EMAIL=${SERVICE_ACCOUNT_EMAIL}'
   - 'IMAGE_INGRESS=${_IMAGE_INGRESS}'
   - 'PORT_INGRESS=${_PORT_INGRESS}'
   - 'IMAGE_BACKEND=${_IMAGE_BACKEND}'
@@ -65,6 +66,7 @@ steps:
   - 'PORT_VALIDATOR=${_PORT_VALIDATOR}'
   script: |
     sed -i s@%SERVICE%@${SERVICE}@g run-service.yaml
+    sed -i s@%SERVICE_ACCOUNT_EMAIL%@${SERVICE_ACCOUNT_EMAIL}@g run-service.yaml
     sed -i s@%IMAGE_INGRESS%@${IMAGE_INGRESS}@g run-service.yaml
     sed -i s@%PORT_INGRESS%@${PORT_INGRESS}@g run-service.yaml
     sed -i s@%IMAGE_BACKEND%@${IMAGE_BACKEND}@g run-service.yaml
