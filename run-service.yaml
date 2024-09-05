@@ -10,7 +10,6 @@ spec:
       annotations:
         run.googleapis.com/container-dependencies: "{ingress:[backend,validator]}"
     spec:
-      serviceAccountName: "%SERVICE_ACCOUNT_EMAIL%"
       containers:
         - image: "%IMAGE_INGRESS%"
           name: ingress
