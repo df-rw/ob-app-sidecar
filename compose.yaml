@@ -2,6 +2,8 @@ services:
   ingress:
     build:
       dockerfile: ./Dockerfile.ingress-local
+      args:
+        OBSERVABLE_TELEMETRY_DISABLE: ${OBSERVABLE_TELEMETRY_DISABLE}
     ports:
       - "8080:8080"
     depends_on:

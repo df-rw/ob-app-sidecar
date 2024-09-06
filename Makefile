@@ -1,5 +1,3 @@
-include .env
-
 APP=ob-app-sidecar
 
 APP_INGRESS=${APP}-ingress
@@ -46,9 +44,3 @@ docker.clean: docker.down # Clear out all the docker things.
 	docker image rm -f ${APP_VALIDATOR}
 
 clean: docker.clean # Clean things.
-
-cloudbuild: # Build as a Google Cloud Run serivce.
-	gcloud builds submit \
-		--region=${GOOGLE_REGION} \
-		--service-account=projects/${GOOGLE_CLOUD_PROJECT}/serviceAccounts/${GOOGLE_CLOUD_SERVICE_ACCOUNT} \
-		--config=cloudbuild.yaml

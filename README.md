@@ -60,11 +60,6 @@ For this demo:
 
 - Go (`brew install go` or [rtfm](https://go.dev/doc/install))
 - nginx (`brew install nginx` or [rtfm](https://nginx.org/en/docs/install.html))
-- .env (see `.env-sample`) with:
-  - `GOOGLE_REGION` set to a valid GCP region;
-  - `GOOGLE_CLOUD_PROJECT` set to valid GCP project name;
-  - `GOOGLE_CLOUD_SERVICE_ACCOUNT` set to a service account that can do Cloud Build and
-    Cloud Run things.
 
 ### Optional
 
@@ -175,7 +170,8 @@ each part of the whole in a separate container. We can do this with
 - `make docker.down` will stop everything.
 - `make docker.clean` will kill everything.
 
-Open browser to <http://localhost:8080>. Click click click.
+You will need to [setup a `.env`](#dot-env), then open a browser to
+<http://localhost:8080>. Click click click.
 
 ## Deploy to Cloud Build
 
@@ -258,8 +254,17 @@ to refer to services. For instance, we refer to the backend application on
 server `127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is
 setup like this.
 
+<a name="dot-env"></a>
+### .env
+
+See `.env-sample` for a... sample.
+
+| Name | Value(s) | Notes |
+|---|---|---|
+| `OBSERVABLE_TELEMETRY_DISABLE` | `true` or `false` | [Observable Framework Telemetry](https://observablehq.com/framework/telemetry) off or on. |
+
+
 ## TODO
 
 - IAP instructions.
-- Validator application setup and deploy on Cloud Build as another sidecar.
 - Rewrite nginx configuration based on local (Docker) deploy or GCP deploy.
