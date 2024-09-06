@@ -78,7 +78,7 @@ steps:
     sed -i s@%IMAGE_VALIDATOR%@${IMAGE_VALIDATOR}@g run-service.yaml
     sed -i s@%PORT_VALIDATOR%@${PORT_VALIDATOR}@g run-service.yaml
 
-- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk'
+- name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   id: RUN_SERVICE
   entrypoint: 'gcloud'
   args:
