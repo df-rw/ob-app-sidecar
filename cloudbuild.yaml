@@ -8,6 +8,7 @@ steps:
       '-f', './Dockerfile.ingress-gcp',
       '--network=cloudbuild',
       '--platform', 'linux/amd64',
+      '--build-arg', 'OBSERVABLE_TELEMETRY_DISABLE=${_OBSERVABLE_TELEMETRY_DISABLE}',
       '.'
     ]
 
@@ -100,6 +101,7 @@ substitutions:
   _PORT_VALIDATOR: "8081"
   _NAME_VALIDATOR: "ob-app-sidecar-validator"
   _IMAGE_VALIDATOR: "${_REGISTRY}/${_NAME_VALIDATOR}:${COMMIT_SHA}"
+  _OBSERVABLE_TELEMETRY_DISABLE: "false"
 
 options:
   dynamic_substitutions: true

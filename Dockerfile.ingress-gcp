@@ -3,6 +3,7 @@
 
 # Build the Observable Framework application.
 FROM node:22-alpine AS stage-build-of-app
+ARG OBSERVABLE_TELEMETRY_DISABLE
 WORKDIR /usr/src/app
 COPY . .
 RUN npm install
