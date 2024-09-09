@@ -266,6 +266,7 @@ See `.env-sample` for a... sample.
 ## Other documentations
 
 - [Enabling IAP on a Google Cloud Run service](docs/iap.md)
+- [Adding environment variables](docs/env-vars.md)
 
 ## TODO
 
