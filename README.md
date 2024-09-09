@@ -263,8 +263,10 @@ See `.env-sample` for a... sample.
 |---|---|---|
 | `OBSERVABLE_TELEMETRY_DISABLE` | `true` or `false` | [Observable Framework Telemetry](https://observablehq.com/framework/telemetry) off or on. |
 
+## Other documentations
+
+- [Enabling IAP on a Google Cloud Run service](docs/iap.md)
 
 ## TODO
 
-- IAP instructions.
 - Rewrite nginx configuration based on local (Docker) deploy or GCP deploy.
