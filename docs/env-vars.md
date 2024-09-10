@@ -1,9 +1,9 @@
 # Adding environment variables
 
 We can add environment variables for consumption by our application. Here we
-outline how to add new variables to the ingress application our sidecar setup.
-Steps are the same for addingn to any other sidecar; just use the appropriate
-build section to receive the environment variable.
+outline how to add new variables to the ingress application. Steps are the same
+for adding to any other sidecar; just use the appropriate build section to
+receive the environment variable.
 
 In the steps below `MY_ENV_VARIABLE` is the name of your new environment
 variable.
@@ -13,11 +13,12 @@ variable.
 - Add `MY_ENV_VARIABLE` to your `.env`.
 - Update your code and make sure it acts how you like.
 - Add your new environment variable to `.env-sample` and make any notes
-  that may be helpful by your peers.
+  in there that may be useful.
 
 ## Update ./README.md
 
-Add notes on your environment to `README.md` in the section `.env`.
+Add notes on your new environment variable to `README.md` in the section
+`.env`.
 
 ## Docker environment
 
@@ -41,10 +42,10 @@ In `compose.yaml`
   services:
     ingress:
       build:
-      ...
+        ...
         args:
           MY_ENV_VARIABLE: ${MY_ENV_VARIABLE}
-      ...
+        ...
   ```
 
 ## GCP environment
@@ -63,7 +64,7 @@ In `Dockerfile.ingress-gcp`:
 In `cloudbuild.yaml`:
 
 - Add a user-defined substitution of your environment variable to
-  `substitutions` with it's default value:
+  `substitutions` with its default value:
 
   ```
   substitutions:
@@ -73,7 +74,7 @@ In `cloudbuild.yaml`:
   ```
 
 - Add `--build-arg` to step `BUILD_INGRESS` in `steps` that references your
-  environment variable and it's substitution:
+  environment variable and its substitution:
 
   ```
   steps:
