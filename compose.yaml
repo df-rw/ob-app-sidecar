@@ -9,7 +9,6 @@ services:
     depends_on:
       - backend
       - validator
-    env_file: ".env"
 
   backend:
     build:
@@ -22,3 +21,5 @@ services:
       dockerfile: ./Dockerfile.validator
     ports:
       - "8081:8081"
+    environment:
+      - GCP_JWT_AUDIENCE=${GCP_JWT_AUDIENCE}

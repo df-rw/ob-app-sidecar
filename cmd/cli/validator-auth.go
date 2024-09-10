@@ -10,10 +10,17 @@ import (
 )
 
 type Application struct {
+	audience string
 }
 
 func New() *Application {
-	return &Application{}
+	audience := os.Getenv("GCP_JWT_AUDIENCE")
+
+	log.Println("audience", audience)
+
+	return &Application{
+		audience,
+	}
 }
 
 func logger(f http.Handler) http.HandlerFunc {

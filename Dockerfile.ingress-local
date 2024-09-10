@@ -6,6 +6,7 @@ FROM node:22-alpine AS stage-build-of-app
 ARG OBSERVABLE_TELEMETRY_DISABLE
 WORKDIR /usr/src/app
 COPY . .
+RUN echo "OBSERVABLE_TELEMETRY_DISABLE is ${OBSERVABLE_TELEMETRY_DISABLE}"
 RUN npm install
 RUN npm run build
 
