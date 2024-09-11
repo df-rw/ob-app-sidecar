@@ -6,10 +6,10 @@ WORKDIR /usr/src/validator
 COPY cmd/cli/validator-dummy.go ./cmd/cli/validator-dummy.go
 COPY go.mod ./
 RUN go mod tidy
-RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/validator ob-app-sidecar/cmd/cli
+RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/validator-dummy ob-app-sidecar/cmd/cli
 
 # Final image from build.
 FROM scratch AS stage-final
-COPY --from=stage-build /usr/local/bin/validator /
+COPY --from=stage-build /usr/local/bin/validator-dummy /
 EXPOSE 8081
-CMD ["/validator"]
+CMD ["/validator-dummy"]
