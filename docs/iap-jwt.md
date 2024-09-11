@@ -24,13 +24,13 @@ string in the Google Cloud console:
 ## Update the build trigger
 
 There is a substition variable ready to go in `cloudbuild.yaml` called
-`_GCP_JWT_AUDIENCE`. You just need to override this in the Cloud Build Trigger
-settings. In the Google Cloud console:
+`_GCP_IAP_JWT_AUDIENCE`. You just need to override this in the Cloud Build
+Trigger settings. In the Google Cloud console:
 
 - `Navigation menu` &gt; `Cloud Build` &gt; `Triggers`
 - Click on the trigger for your project.
 - Go to `Advanced` &gt; Substitution variables. Add the variable
-  `_GCP_JWT_AUDIENCE` and paste the audience string copied previously.
+  `_GCP_IAP_JWT_AUDIENCE` and paste the audience string copied previously.
 - Save this.
 
 ## Add your validation code

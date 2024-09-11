@@ -70,7 +70,7 @@ steps:
   - 'PORT_BACKEND=${_PORT_BACKEND}'
   - 'IMAGE_VALIDATOR=${_IMAGE_VALIDATOR}'
   - 'PORT_VALIDATOR=${_PORT_VALIDATOR}'
-  - 'GCP_JWT_AUDIENCE=${_GCP_JWT_AUDIENCE}'
+  - 'GCP_IAP_JWT_AUDIENCE=${_GCP_IAP_JWT_AUDIENCE}'
   script: |
     sed -i s@%SERVICE%@${SERVICE}@g run-service.yaml
     sed -i s@%IMAGE_INGRESS%@${IMAGE_INGRESS}@g run-service.yaml
@@ -79,7 +79,7 @@ steps:
     sed -i s@%PORT_BACKEND%@${PORT_BACKEND}@g run-service.yaml
     sed -i s@%IMAGE_VALIDATOR%@${IMAGE_VALIDATOR}@g run-service.yaml
     sed -i s@%PORT_VALIDATOR%@${PORT_VALIDATOR}@g run-service.yaml
-    sed -i s@%GCP_JWT_AUDIENCE%@${GCP_JWT_AUDIENCE}@g run-service.yaml
+    sed -i s@%GCP_IAP_JWT_AUDIENCE%@${GCP_IAP_JWT_AUDIENCE}@g run-service.yaml
 
 - name: 'gcr.io/google.com/cloudsdktool/cloud-sdk:slim'
   id: RUN_SERVICE
@@ -104,7 +104,7 @@ substitutions:
   _NAME_VALIDATOR: "ob-app-sidecar-validator"
   _IMAGE_VALIDATOR: "${_REGISTRY}/${_NAME_VALIDATOR}:${COMMIT_SHA}"
   _OBSERVABLE_TELEMETRY_DISABLE: "false"
-  _GCP_JWT_AUDIENCE: "audience_string_for_IAP_JWT_validation"
+  _GCP_IAP_JWT_AUDIENCE: "audience_string_for_IAP_JWT_validation"
 
 options:
   dynamic_substitutions: true

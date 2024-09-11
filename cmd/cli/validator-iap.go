@@ -17,7 +17,7 @@ type Application struct {
 }
 
 func New() *Application {
-	Audience := os.Getenv("GCP_JWT_AUDIENCE")
+	Audience := os.Getenv("GCP_IAP_JWT_AUDIENCE")
 
 	return &Application{
 		Audience,

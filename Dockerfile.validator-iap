@@ -1,8 +1,16 @@
 # The IAP validator container is a Go application.
 
 # Application build.
-FROM golang:1.23 AS stage-build
+FROM golang:1.23-alpine AS stage-build
 WORKDIR /usr/src/validator
+
+# The scratch image (used in stage-final) doesn't include any
+# certificates, but the IAP validation does a GET. Grab the
+# certs so they can be copied into stage-final.
+# - https://gist.github.com/michaelboke/564bf96f7331f35f1716b59984befc50
+RUN apk update && apk upgrade && apk add --no-cache ca-certificates
+RUN update-ca-certificates
+
 COPY cmd/cli/validator-iap.go ./cmd/cli/validator-iap.go
 COPY go.mod ./
 RUN go mod tidy
@@ -10,6 +18,7 @@ RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/validator-iap ob-app-
 
 # Final image from build.
 FROM scratch AS stage-final
+COPY --from=stage-build /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=stage-build /usr/local/bin/validator-iap /
 EXPOSE 8081
 CMD ["/validator-iap"]
