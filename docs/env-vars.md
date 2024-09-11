@@ -5,9 +5,7 @@ we outline how to add new variables to the validator application for use at
 **run** time.
 
 For an example of adding an environment variable for use at **build** time
-rather than run time, look for `OBSERVABLE_TELEMETRY_DISABLE`. Note that with
-[interpolation](https://docs.docker.com/compose/environment-variables/set-environment-variables/#additional-information),
-`.env` in the current directory will be read automatically.
+rather than run time, look for `OBSERVABLE_TELEMETRY_DISABLE`.
 
 In the steps below `MY_ENV_VARIABLE` is the name of your new environment
 variable.
@@ -25,6 +23,11 @@ Add notes on your new environment variable to `README.md` in the section
 `.env`.
 
 ## Docker environment
+
+Note that when using
+[interpolation](https://docs.docker.com/compose/environment-variables/set-environment-variables/#additional-information),
+`.env` in the current directory will be read automatically.
+
 
 In `compose.yaml`
 
@@ -64,7 +67,7 @@ In `cloudbuild.yaml`:
     - 'MY_ENV_VARIABLE=${_MY_ENV_VARIABLE}'
     script: |
       ...
-      sed -i s@%GCP_JWT_AUDIENCE%@${GCP_JWT_AUDIENCE}@g run-service.yaml
+      sed -i s@%MY_ENV_VARIABLE%@${MY_ENV_VARIABLE}@g run-service.yaml
       ...
   ```
 
@@ -84,6 +87,6 @@ In `run-service.yaml`:
                 value: "%MY_ENV_VARIABLE%"
   ```
 
-For variables that shouldn't be committed, the values of substitution variables
-can be overridden in the Google Cloud console in the Cloud Build trigger or the
-Cloud Run settings.
+For values of environment variables that shouldn't be committed, the values of
+substitution variables can be overridden in the Google Cloud console in the
+Cloud Build trigger.

@@ -10,17 +10,10 @@ import (
 )
 
 type Application struct {
-	audience string
 }
 
 func New() *Application {
-	audience := os.Getenv("GCP_JWT_AUDIENCE")
-
-	log.Println("audience", audience)
-
-	return &Application{
-		audience,
-	}
+	return &Application{}
 }
 
 func logger(f http.Handler) http.HandlerFunc {
@@ -32,12 +25,8 @@ func logger(f http.Handler) http.HandlerFunc {
 }
 
 func (app *Application) validatorAuth(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
-
-	// TODO Check for the GC IAP header
-	// TODO Validate the JWT
-
-	statusCode = http.StatusNoContent // TODO use correct response code
+	// Validate the request however you like.
+	statusCode := http.StatusNoContent
 
 	w.WriteHeader(statusCode)
 }

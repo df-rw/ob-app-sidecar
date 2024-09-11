@@ -42,17 +42,22 @@ The application is based on <https://github.com/df-rw/ob-app>.
 ## Aside: What is a validator application?
 
 The validator application accepts requests from the client and validates them
-prior to the request being handed off to the application. What the validation
-does is application dependent, and could be anything like a basic auth check, a
-cookie check or JWT validation.
+prior to the request being handed off to the backend application. What the
+validation does is application dependent, and could be anything like a basic
+auth check, a cookie check or JWT validation.
 
 The validator application exists _separately_ from the application and proxy;
 however the proxy is (and in production, must be!) configured to send all
 requests through the validator.
 
 The purpose of having a validator application, aside from it's function, is to
-provide a single method of validation that doesn't require changes to a backend
-application.
+provide a single method of validation that doesn't require changes to the
+backend application.
+
+It can also provide a second layer of security. For example, when using
+Google's Identity-Aware Proxy (IAP), the header `X-Goog-IAP-JWT-Assertion` is
+added to a client request by IAP before reaching the backend application. This
+can be checked in the validator to ensure that IAP is enabled.
 
 ## Prerequisites
 
@@ -66,11 +71,18 @@ For this demo:
 - [air](https://github.com/air-verse/air) for rebuilding the Go backend
   application on file changes during development:
 
-```shell
-go install github.com/air-verse/air@latest
-```
+  ```shell
+  go install github.com/air-verse/air@latest
+  ```
 
-Configuration for air is in `./.air.toml`.
+  Configuration for air is in `./.air.toml`.
+
+- [Docker](https://docker.com) for testing all applications in their own
+  containers.
+
+  ```shell
+  brew install --cask docker
+  ```
 
 ## Install
 
@@ -132,7 +144,7 @@ Open browser to <http://localhost:6080>. Click click click, hack hack hack.
 
 `nginx-dev.conf` is setup to pass any requests starting with `/api/` to the
 backend application. If there are specific paths you wish to forward to the
-backend application, adjust `nginx-dev.conf` to suit.
+backend application, adjust `nginx-*.conf` to suit.
 
 ## Testing containers
 
@@ -170,8 +182,7 @@ each part of the whole in a separate container. We can do this with
 - `make docker.down` will stop everything.
 - `make docker.clean` will kill everything.
 
-You will need to [setup a `.env`](#dot-env), then open a browser to
-<http://localhost:8080>. Click click click.
+Open a browser to <http://localhost:8080>. Click click click.
 
 ## Deploy to Cloud Build
 
@@ -265,8 +276,8 @@ See `.env-sample` for a... sample.
 
 ## Other documentations
 
-- [Enabling IAP on a Google Cloud Run service](docs/iap.md)
 - [Adding environment variables](docs/env-vars.md)
+- [Enabling IAP on a Google Cloud Run service](docs/iap.md)
 
 ## TODO
 
