@@ -30,7 +30,7 @@ steps:
   args:
     [
       'build', '-t', '${_IMAGE_VALIDATOR}',
-      '-f', './Dockerfile.validator',
+      '-f', './Dockerfile.validator-iap',
       '--network=cloudbuild',
       '--platform', 'linux/amd64',
       '.'

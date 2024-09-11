@@ -278,6 +278,7 @@ See `.env-sample` for a... sample.
 
 - [Adding environment variables](docs/env-vars.md)
 - [Enabling IAP on a Google Cloud Run service](docs/iap.md)
+- [Validating IAP JWT tokens](docs/iap-jwt.md)
 
 ## TODO
 

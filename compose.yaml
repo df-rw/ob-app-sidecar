@@ -18,7 +18,7 @@ services:
 
   validator:
     build:
-      dockerfile: ./Dockerfile.validator
+      dockerfile: ./Dockerfile.validator-local
     ports:
       - "8081:8081"
     environment:
