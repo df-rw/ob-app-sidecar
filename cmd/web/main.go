@@ -1,12 +1,14 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"html/template"
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -37,6 +39,27 @@ func logger(f http.Handler) http.HandlerFunc {
 	}
 }
 
+func whoami(f http.Handler) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		iAm := r.Header.Get("x-goog-authenticated-user-email")
+
+		if iAm == "" {
+			log.Println("missing x-goog-authenticated-user-email header")
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		if !strings.HasPrefix(iAm, "accounts.google.com:") {
+			log.Printf("invalid x-goog-authenticated-user-email: %s\n", iAm)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		iAm = strings.Replace(iAm, "accounts.google.com:", "", 1)
+		f.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "userEmail", iAm)))
+	}
+}
+
 func main() {
 	port := flag.Int("p", 8082, "webserver port")
 	flag.Parse()
@@ -47,6 +70,7 @@ func main() {
 
 	mux.HandleFunc("/api/now", app.Now)
 	mux.HandleFunc("/api/then", app.Then)
+	mux.HandleFunc("/api/whoami", app.WhoAmI)
 
 	mux.HandleFunc("GET /api/todos", app.Todos)
 	mux.HandleFunc("POST /api/todos/add", app.TodosAdd)
@@ -60,5 +84,5 @@ func main() {
 	*/
 
 	fmt.Printf("%s: listening on port %d\n", os.Args[0], *port)
-	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
+	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), whoami(logger(mux))))
 }

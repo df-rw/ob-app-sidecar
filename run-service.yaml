@@ -25,3 +25,6 @@ spec:
           startupProbe:
             tcpSocket:
               port: "%PORT_VALIDATOR%"
+          env:
+            - name: GCP_IAP_JWT_AUDIENCE
+              value: "%GCP_IAP_JWT_AUDIENCE%"

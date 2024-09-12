@@ -14,7 +14,7 @@ Go backend and communicates to it using HTMX.
 ## Simple API calls
 
 <!-- a couple of calls to the backend api -->
-<div class="grid grid-cols-2">
+<div class="grid grid-cols-2" style="grid-auto-rows: auto;">
     <div class="card">
         <h2>server time</h2>
         <button
@@ -31,6 +31,7 @@ Go backend and communicates to it using HTMX.
             hx-swap="innerHTML">hit me</button>
         <span id="then"></span>
     </div>
+    <div class="card" hx-get="/api/whoami" hx-trigger="load"></div>
 </div>
 
 <!-- making sure deployment works with file attachments -->

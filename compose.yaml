@@ -9,7 +9,6 @@ services:
     depends_on:
       - backend
       - validator
-    env_file: ".env"
 
   backend:
     build:
@@ -19,6 +18,6 @@ services:
 
   validator:
     build:
-      dockerfile: ./Dockerfile.validator
+      dockerfile: ./Dockerfile.validator-dummy
     ports:
       - "8081:8081"

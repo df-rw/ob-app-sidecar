@@ -42,17 +42,22 @@ The application is based on <https://github.com/df-rw/ob-app>.
 ## Aside: What is a validator application?
 
 The validator application accepts requests from the client and validates them
-prior to the request being handed off to the application. What the validation
-does is application dependent, and could be anything like a basic auth check, a
-cookie check or JWT validation.
+prior to the request being handed off to the backend application. What the
+validation does is application dependent, and could be anything like a basic
+auth check, a cookie check or JWT validation.
 
 The validator application exists _separately_ from the application and proxy;
 however the proxy is (and in production, must be!) configured to send all
 requests through the validator.
 
 The purpose of having a validator application, aside from it's function, is to
-provide a single method of validation that doesn't require changes to a backend
-application.
+provide a single method of validation that doesn't require changes to the
+backend application.
+
+It can also provide a second layer of security. For example, when using
+Google's Identity-Aware Proxy (IAP), the header `X-Goog-IAP-JWT-Assertion` is
+added to a client request by IAP before reaching the backend application. This
+can be checked in the validator to ensure that IAP is enabled.
 
 ## Prerequisites
 
@@ -66,11 +71,18 @@ For this demo:
 - [air](https://github.com/air-verse/air) for rebuilding the Go backend
   application on file changes during development:
 
-```shell
-go install github.com/air-verse/air@latest
-```
+  ```shell
+  go install github.com/air-verse/air@latest
+  ```
 
-Configuration for air is in `./.air.toml`.
+  Configuration for air is in `./.air.toml`.
+
+- [Docker](https://docker.com) for testing all applications in their own
+  containers.
+
+  ```shell
+  brew install --cask docker
+  ```
 
 ## Install
 
@@ -78,6 +90,18 @@ Configuration for air is in `./.air.toml`.
 git clone https://github.com/df-rw/ob-app-sidecar
 cd ob-app-sidecar
 npm install # install modules for Observable Framework
+```
+
+### Optional
+
+You may wish to set the email address of a valid user account while developing
+application if you need to differentiate between users. See <a
+href="#why-google-header-nginx-conf">Why do nginx-dev.conf and
+nginx-docker.conf set a Google header?</a> for why you may want to do this:
+
+```shell
+sed -i '' -e 's/foo@bar.com/<a valid email address/>' nginx-dev.conf
+sed -i '' -e 's/foo@bar.com/<a valid email address/>' nginx-docker.conf
 ```
 
 ## Local development
@@ -132,7 +156,7 @@ Open browser to <http://localhost:6080>. Click click click, hack hack hack.
 
 `nginx-dev.conf` is setup to pass any requests starting with `/api/` to the
 backend application. If there are specific paths you wish to forward to the
-backend application, adjust `nginx-dev.conf` to suit.
+backend application, adjust `nginx-*.conf` to suit.
 
 ## Testing containers
 
@@ -170,8 +194,7 @@ each part of the whole in a separate container. We can do this with
 - `make docker.down` will stop everything.
 - `make docker.clean` will kill everything.
 
-You will need to [setup a `.env`](#dot-env), then open a browser to
-<http://localhost:8080>. Click click click.
+Open a browser to <http://localhost:8080>. Click click click.
 
 ## Deploy to Cloud Build
 
@@ -229,10 +252,15 @@ question](https://stackoverflow.com/questions/77550717/gcloud-run-replace-not-de
 | `Dockerfile.backend` | Builds the container for the backend application. |
 | `Dockerfile.ingress-gcp` | Builds the ingress container on GCP. |
 | `Dockerfile.ingress-local` | Builds the ingress container for local (Docker) use. |
-| `Dockerfile.validator` | Builds the container for the validator application. |
+| `Dockerfile.validator-dummy` | Builds the container for the dummy validator application. |
+| `Dockerfile.validator-iap` | Builds the container for the IAP validator application. |
 
 `Dockerfile.ingress-gcp` differs from `Dockerfile.ingress-local` as they
 reference (slightly) different nginx configurations (see below).
+
+`Dockerfile.validator-dummy` builds a dummy validator that returns success for
+every connection. `Dockerfile.validator-iap` uses `cmd/cli/validator-iap.go`
+to validate connections through IAP.
 
 ### Why are there so many nginx configurations?
 
@@ -254,6 +282,34 @@ to refer to services. For instance, we refer to the backend application on
 server `127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is
 setup like this.
 
+<a name="why-google-header-nginx-conf"></a>
+### Why do nginx-dev.conf and nginx-docker.conf set a Google header?
+
+The sample application in this repository is ready to be deployed onto Google
+Cloud with IAP sitting in front of it. Two headers are provided by IAP to
+backend applications:
+
+- [`X-Goog-IAP-JWT-Assertion`](https://cloud.google.com/iap/docs/signed-headers-howto): 
+    a JWT supplied by IAP that should be verified by the application.
+- [`X-Goog-Authenticated-User-Email`](https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers): the email address of the authenticated user. 
+
+The validator application `cmd/cli/validator-iap.go` validates the JWT, and
+also checks the claim in the JWT for the user by using
+`X-Goog-Authenticated-User-Email`. If both these conditions pass, the validator
+lets the request through to the backend application.
+
+The backend application should know who the user is, and while it could
+parse the JWT again, it's easier to just use `X-Goog-Authenticated-User-Email`
+since this has been verified by the validator application. From [the
+docs](https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers):
+
+> If you use these headers, you must compare them against the identity
+> information from the authenticated JWT header listed above.
+
+Since we don't use IAP in local development, we fake
+`X-Goog-Authenticated-User-Email` in `nginx-dev.conf` and `nginx-docker.conf`.
+This also allows easy testing across different accounts locally.
+
 <a name="dot-env"></a>
 ### .env
 
@@ -265,8 +321,9 @@ See `.env-sample` for a... sample.
 
 ## Other documentations
 
-- [Enabling IAP on a Google Cloud Run service](docs/iap.md)
 - [Adding environment variables](docs/env-vars.md)
+- [Enabling IAP on a Google Cloud Run service](docs/iap.md)
+- [Validating IAP JWT tokens](docs/iap-jwt.md)
 
 ## TODO
 

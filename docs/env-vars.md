@@ -1,9 +1,11 @@
 # Adding environment variables
 
-We can add environment variables for consumption by our application. Here we
-outline how to add new variables to the ingress application our sidecar setup.
-Steps are the same for addingn to any other sidecar; just use the appropriate
-build section to receive the environment variable.
+We can add environment variables for consumption by any of our sidecars. Here
+we outline how to add new variables to the validator application for use at
+**run** time.
+
+For an example of adding an environment variable for use at **build** time
+rather than run time, look for `OBSERVABLE_TELEMETRY_DISABLE`.
 
 In the steps below `MY_ENV_VARIABLE` is the name of your new environment
 variable.
@@ -13,57 +15,38 @@ variable.
 - Add `MY_ENV_VARIABLE` to your `.env`.
 - Update your code and make sure it acts how you like.
 - Add your new environment variable to `.env-sample` and make any notes
-  that may be helpful by your peers.
+  in there that may be useful.
 
 ## Update ./README.md
 
-Add notes on your environment to `README.md` in the section `.env`.
+Add notes on your new environment variable to `README.md` in the section
+`.env`.
 
 ## Docker environment
 
-In `Dockerfile.ingress-local`:
+Note that when using
+[interpolation](https://docs.docker.com/compose/environment-variables/set-environment-variables/#additional-information),
+`.env` in the current directory will be read automatically.
 
-- Add an `ARG` named for your environment variable in `stage-build-of-app`:
- 
-  ```
-  FROM node:22-alpine AS stage-build-of-app
-  ...
-  ARG MY_ENV_VARIABLE
-  ...
-  ```
 
 In `compose.yaml`
 
-- Add your environment variable to `args` in the `services` section that references
-  the same name:
+- Add your environment variable to `environment` in the validator service
+  section:
 
   ```
   services:
-    ingress:
-      build:
-      ...
-        args:
-          MY_ENV_VARIABLE: ${MY_ENV_VARIABLE}
-      ...
+    validator:
+      environment:
+        - MY_ENV_VARIABLE=${MY_ENV_VARIABLE}
   ```
 
 ## GCP environment
 
-In `Dockerfile.ingress-gcp`:
-
-- Add an `ARG` named for your environment variable in `stage-build-of-app`:
-
-  ```
-  FROM node:22-alpine AS stage-build-of-app
-  ...
-  ARG MY_ENV_VARIABLE
-  ...
-  ```
-
 In `cloudbuild.yaml`:
 
-- Add a user-defined substitution of your environment variable to
-  `substitutions` with it's default value:
+- Add a user-defined substitution of your environment variable name to
+  the `substitutions` section with its default value:
 
   ```
   substitutions:
@@ -72,15 +55,38 @@ In `cloudbuild.yaml`:
     ...
   ```
 
-- Add `--build-arg` to step `BUILD_INGRESS` in `steps` that references your
-  environment variable and it's substitution:
+- Since this is a run-time variable, we need to pass it along to `gcloud run
+  services`. Add it to the `env` section of `SET_SERVICE`, and do a
+  substitution in the `script` section as well:
 
   ```
-  steps:
-  - name: 'gcr.io/cloud-builders/docker'
-    id: BUILD_INGRESS
+  - name: 'alpine'
+    id: SET_SERVICE
+    env:
     ...
-    '--build-arg', 'MY_ENV_VARIABLE=${_MY_ENV_VARIABLE}',
-    ...
+    - 'MY_ENV_VARIABLE=${_MY_ENV_VARIABLE}'
+    script: |
+      ...
+      sed -i s@%MY_ENV_VARIABLE%@${MY_ENV_VARIABLE}@g run-service.yaml
+      ...
   ```
 
+In `run-service.yaml`:
+
+- Add to the `env` section of the validator container:
+
+  ```
+  spec:
+    template:
+      spec:
+        containers:
+          - image: "%IMAGE_VALIDATOR%"
+            ...
+            env:
+              - name: MY_ENV_VARIABLE
+                value: "%MY_ENV_VARIABLE%"
+  ```
+
+For values of environment variables that shouldn't be committed, the values of
+substitution variables can be overridden in the Google Cloud console in the
+Cloud Build trigger.

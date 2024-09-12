@@ -1,3 +1,5 @@
+// validator-dummy is a dummy validation application. Use this as a base for
+// performing the appropriate validation steps for your use case.
 package main
 
 import (
@@ -25,12 +27,8 @@ func logger(f http.Handler) http.HandlerFunc {
 }
 
 func (app *Application) validatorAuth(w http.ResponseWriter, r *http.Request) {
-	var statusCode int
-
-	// TODO Check for the GC IAP header
-	// TODO Validate the JWT
-
-	statusCode = http.StatusNoContent // TODO use correct response code
+	// Validate the request however you like.
+	statusCode := http.StatusNoContent
 
 	w.WriteHeader(statusCode)
 }
