@@ -8,6 +8,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -43,10 +44,18 @@ func whoami(f http.Handler) http.HandlerFunc {
 		iAm := r.Header.Get("x-goog-authenticated-user-email")
 
 		if iAm == "" {
+			log.Println("missing x-goog-authenticated-user-email header")
 			w.WriteHeader(http.StatusBadRequest)
 			return
 		}
 
+		if !strings.HasPrefix(iAm, "accounts.google.com:") {
+			log.Printf("invalid x-goog-authenticated-user-email: %s\n", iAm)
+			w.WriteHeader(http.StatusBadRequest)
+			return
+		}
+
+		iAm = strings.Replace(iAm, "accounts.google.com:", "", 1)
 		f.ServeHTTP(w, r.WithContext(context.WithValue(r.Context(), "userEmail", iAm)))
 	}
 }
