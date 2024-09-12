@@ -1,3 +1,5 @@
+// validator-dummy is a dummy validation application. Use this as a base for
+// performing the appropriate validation steps for your use case.
 package main
 
 import (

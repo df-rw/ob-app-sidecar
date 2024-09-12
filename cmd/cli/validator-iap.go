@@ -12,6 +12,9 @@ import (
 	"google.golang.org/api/idtoken"
 )
 
+const headerIAP = "X-Goog-IAP-JWT-Assertion"
+const headerUserEmail = "X-Goog-Authenticated-User-Email"
+
 type Application struct {
 	Audience string
 }
@@ -32,28 +35,39 @@ func logger(f http.Handler) http.HandlerFunc {
 	}
 }
 
-func (app *Application) validatorAuth(w http.ResponseWriter, r *http.Request) {
-	iapJWT := r.Header.Get("X-Goog-IAP-JWT-Assertion")
+func (app *Application) validateIAP(w http.ResponseWriter, r *http.Request) {
+	iapJWT := r.Header.Get(headerIAP)
+	iapUserEmail := r.Header.Get(headerUserEmail)
 
 	if iapJWT == "" {
-		log.Printf("missing IAP header\n")
+		log.Printf("missing header %s\n", headerIAP)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	var statusCode int
+	// https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers
+	if iapUserEmail == "" {
+		log.Printf("missing header %s\n", headerUserEmail)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
 
 	ctx := context.Background()
 	payload, err := idtoken.Validate(ctx, iapJWT, app.Audience)
 	if err != nil {
-		statusCode = http.StatusUnauthorized
 		log.Println(fmt.Errorf("idtoken.Validate: %w", err))
-	} else {
-		statusCode = http.StatusNoContent
-		log.Printf("payload: %v", payload)
+		w.WriteHeader(http.StatusUnauthorized)
+		return
 	}
 
-	w.WriteHeader(statusCode)
+	jwtEmail := payload.Claims["email"]
+	if jwtEmail == iapUserEmail {
+		log.Println("email mismatch: JWT %s, header %s\n", jwtEmail, iapUserEmail)
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func main() {
@@ -63,7 +77,7 @@ func main() {
 	app := New()
 
 	mux := http.NewServeMux()
-	mux.HandleFunc("/", app.validatorAuth)
+	mux.HandleFunc("/", app.validateIAP)
 
 	fmt.Printf("%s: listening on port %d (audience '%s')\n", os.Args[0], *port, app.Audience)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), logger(mux)))
