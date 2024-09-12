@@ -92,6 +92,18 @@ cd ob-app-sidecar
 npm install # install modules for Observable Framework
 ```
 
+### Optional
+
+You may wish to set the email address of a valid user account while developing
+application if you need to differentiate between users. See <a
+href="#why-google-header-nginx-conf">Why do nginx-dev.conf and
+nginx-docker.conf set a Google header?</a> for why you may want to do this:
+
+```shell
+sed -i '' -e 's/foo@bar.com/<a valid email address/>' nginx-dev.conf
+sed -i '' -e 's/foo@bar.com/<a valid email address/>' nginx-docker.conf
+```
+
 ## Local development
 
 For ease of development, each of the nginx, Observable Framework and backend
@@ -240,10 +252,15 @@ question](https://stackoverflow.com/questions/77550717/gcloud-run-replace-not-de
 | `Dockerfile.backend` | Builds the container for the backend application. |
 | `Dockerfile.ingress-gcp` | Builds the ingress container on GCP. |
 | `Dockerfile.ingress-local` | Builds the ingress container for local (Docker) use. |
-| `Dockerfile.validator` | Builds the container for the validator application. |
+| `Dockerfile.validator-dummy` | Builds the container for the dummy validator application. |
+| `Dockerfile.validator-iap` | Builds the container for the IAP validator application. |
 
 `Dockerfile.ingress-gcp` differs from `Dockerfile.ingress-local` as they
 reference (slightly) different nginx configurations (see below).
+
+`Dockerfile.validator-dummy` builds a dummy validator that returns success for
+every connection. `Dockerfile.validator-iap` uses `cmd/cli/validator-iap.go`
+to validate connections through IAP.
 
 ### Why are there so many nginx configurations?
 
@@ -264,6 +281,34 @@ numbers](https://cloud.google.com/run/docs/internet-proxy-nginx-sidecar#configur
 to refer to services. For instance, we refer to the backend application on
 server `127.0.0.1`, with the port diferrentiating services. `nginx-gcp.conf` is
 setup like this.
+
+<a name="why-google-header-nginx-conf"></a>
+### Why do nginx-dev.conf and nginx-docker.conf set a Google header?
+
+The sample application in this repository is ready to be deployed onto Google
+Cloud with IAP sitting in front of it. Two headers are provided by IAP to
+backend applications:
+
+- [`X-Goog-IAP-JWT-Assertion`](https://cloud.google.com/iap/docs/signed-headers-howto): 
+    a JWT supplied by IAP that should be verified by the application.
+- [`X-Goog-Authenticated-User-Email`](https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers): the email address of the authenticated user. 
+
+The validator application `cmd/cli/validator-iap.go` validates the JWT, and
+also checks the claim in the JWT for the user by using
+`X-Goog-Authenticated-User-Email`. If both these conditions pass, the validator
+lets the request through to the backend application.
+
+The backend application should know who the user is, and while it could
+parse the JWT again, it's easier to just use `X-Goog-Authenticated-User-Email`
+since this has been verified by the validator application. From [the
+docs](https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers):
+
+> If you use these headers, you must compare them against the identity
+> information from the authenticated JWT header listed above.
+
+Since we don't use IAP in local development, we fake
+`X-Goog-Authenticated-User-Email` in `nginx-dev.conf` and `nginx-docker.conf`.
+This also allows easy testing across different accounts locally.
 
 <a name="dot-env"></a>
 ### .env

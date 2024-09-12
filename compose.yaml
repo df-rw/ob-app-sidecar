@@ -18,6 +18,6 @@ services:
 
   validator:
     build:
-      dockerfile: ./Dockerfile.validator-local
+      dockerfile: ./Dockerfile.validator-dummy
     ports:
       - "8081:8081"
