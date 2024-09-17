@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 	"time"
 
 	"google.golang.org/api/idtoken"
@@ -31,7 +32,7 @@ func logger(f http.Handler) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		t := time.Now()
 		f.ServeHTTP(w, r)
-		log.Printf("%s: %s %s %v\n", os.Args[0], r.Method, r.URL.String(), time.Since(t))
+		fmt.Printf("%s: %s %s %v\n", os.Args[0], r.Method, r.URL.String(), time.Since(t))
 	}
 }
 
@@ -40,14 +41,14 @@ func (app *Application) validateIAP(w http.ResponseWriter, r *http.Request) {
 	iapUserEmail := r.Header.Get(headerUserEmail)
 
 	if iapJWT == "" {
-		log.Printf("missing header %s\n", headerIAP)
+		fmt.Printf("missing header %s\n", headerIAP)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	// https://cloud.google.com/iap/docs/identity-howto#getting_the_users_identity_with_signed_headers
 	if iapUserEmail == "" {
-		log.Printf("missing header %s\n", headerUserEmail)
+		fmt.Printf("missing header %s\n", headerUserEmail)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -55,14 +56,20 @@ func (app *Application) validateIAP(w http.ResponseWriter, r *http.Request) {
 	ctx := context.Background()
 	payload, err := idtoken.Validate(ctx, iapJWT, app.Audience)
 	if err != nil {
-		log.Println(fmt.Errorf("idtoken.Validate: %w", err))
+		fmt.Println(fmt.Errorf("idtoken.Validate: %w", err))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
 
-	jwtEmail := payload.Claims["email"]
-	if jwtEmail == iapUserEmail {
-		log.Println("email mismatch: JWT %s, header %s\n", jwtEmail, iapUserEmail)
+	if !strings.HasPrefix(iapUserEmail, "accounts.google.com:") {
+		fmt.Printf("missing accounts.google.com prefix on email header")
+		w.WriteHeader(http.StatusBadRequest)
+		return
+	}
+
+	jwtEmail := payload.Claims["email"].(string)
+	if jwtEmail != strings.Replace(iapUserEmail, "accounts.google.com:", "", 1) {
+		fmt.Println("email mismatch: JWT %s, header %s\n", jwtEmail, iapUserEmail)
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
