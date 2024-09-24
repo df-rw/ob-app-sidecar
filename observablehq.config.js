@@ -40,4 +40,9 @@ export default {
   // linkify: true, // convert URLs in Markdown to links
   // typographer: false, // smart quotes and other typographic improvements
   // cleanUrls: true, // drop .html from URLs
+
+  dynamicPaths: [
+    "/points/100",
+    "/points/1000000",
+  ],
 };
