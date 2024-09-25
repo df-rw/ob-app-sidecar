@@ -15,6 +15,24 @@ export default {
   //     ]
   //   }
   // ],
+  pages: [
+    {
+      name: "Todos",
+      path: "/todos",
+    },
+    {
+      name: "Points",
+      open: false,
+      pages: [
+        { name: "100", path: "/points/100" },
+        { name: "1,000", path: "/points/1000" },
+        { name: "10,000", path: "/points/10000" },
+        { name: "100,000", path: "/points/100000" },
+        { name: "1,000,000", path: "/points/1000000" },
+      ],
+    }
+
+  ],
 
   // Content to add to the head of the page, e.g. for a favicon:
   head: `
@@ -43,6 +61,9 @@ export default {
 
   dynamicPaths: [
     "/points/100",
+    "/points/1000",
+    "/points/10000",
+    "/points/100000",
     "/points/1000000",
   ],
 };
