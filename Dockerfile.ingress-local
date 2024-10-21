@@ -5,12 +5,12 @@
 FROM node:22-alpine AS stage-build-of-app
 ARG OBSERVABLE_TELEMETRY_DISABLE
 WORKDIR /usr/src/app
-COPY . .
+COPY ./frontend .
 RUN echo "OBSERVABLE_TELEMETRY_DISABLE is ${OBSERVABLE_TELEMETRY_DISABLE}"
 RUN npm install
 RUN npm run build
 
 # Assemble the ingress container.
 FROM nginx:latest AS stage-final
-COPY ./nginx-docker.conf /etc/nginx/nginx.conf
+COPY ./nginx/nginx-docker.conf /etc/nginx/nginx.conf
 COPY --from=stage-build-of-app --chown=nobody:nogroup /usr/src/app/dist /usr/share/nginx/html

@@ -26,7 +26,7 @@ go.work.sum
 
 # Observable Framework .gitignore.
 .DS_Store
-/dist/
+dist/
 node_modules/
 yarn-error.log
 src/.observablehq

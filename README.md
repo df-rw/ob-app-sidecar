@@ -112,9 +112,9 @@ of each individual service, as well as restarting only individual services if
 required:
 
 ```shell
-go run ./cmd/web/*.go -p 6082        # (or "air") Start backend server.
-npm run dev -- --port 6081 --no-open # Start Observable framework (diff terminal).
-nginx -p . -c ./nginx-dev.conf       # Start nginx (diff terminal).
+cd backend && go run ./cmd/web/*.go -p 6082         # (or "air") Start backend server.
+cd frontend && npm run dev -- --port 6081 --no-open # Start Observable framework (diff terminal).
+nginx -p ./nginx -c ./nginx-dev.conf                # Start nginx (diff terminal).
 ```
 
 How traffic moves through the development environment:
@@ -263,6 +263,8 @@ every connection. `Dockerfile.validator-iap` uses `cmd/cli/validator-iap.go`
 to validate connections through IAP.
 
 ### Why are there so many nginx configurations?
+
+nginx configuration files are in `./nginx`:
 
 | Filename | Porpoise |
 | --- | --- |

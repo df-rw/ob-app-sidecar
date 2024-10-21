@@ -11,8 +11,8 @@ WORKDIR /usr/src/validator
 RUN apk update && apk upgrade && apk add --no-cache ca-certificates
 RUN update-ca-certificates
 
-COPY cmd/cli/validator-iap.go ./cmd/cli/validator-iap.go
-COPY go.mod ./
+COPY backend/cmd/cli/validator-iap.go ./cmd/cli/validator-iap.go
+COPY backend/go.mod ./
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/validator-iap ob-app-sidecar/cmd/cli
 

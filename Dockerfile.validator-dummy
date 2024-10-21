@@ -3,8 +3,8 @@
 # Application build.
 FROM golang:1.23 AS stage-build
 WORKDIR /usr/src/validator
-COPY cmd/cli/validator-dummy.go ./cmd/cli/validator-dummy.go
-COPY go.mod ./
+COPY backend/cmd/cli/validator-dummy.go ./cmd/cli/validator-dummy.go
+COPY backend/go.mod ./
 RUN go mod tidy
 RUN CGO_ENABLED=0 GOOS=linux go build -v -o /usr/local/bin/validator-dummy ob-app-sidecar/cmd/cli
 
