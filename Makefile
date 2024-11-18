@@ -14,7 +14,10 @@ APP_VALIDATOR=${APP}-validator
 	docker.clean \
 	clean \
 	cloudbuild \
-	help
+	help \
+	backend.dev \
+	frontend.dev \
+	ingress.dev
 
 .DEFAULT_GOAL=help
 
@@ -44,3 +47,12 @@ docker.clean: docker.down # Clear out all the docker things.
 	docker image rm -f ${APP_VALIDATOR}
 
 clean: docker.clean # Clean things.
+
+backend.dev: # run the backend server
+	make -C backend
+
+frontend.dev: # run the frontend server
+	make -C frontend
+
+ingress.dev: # run nginx dev
+	nginx -p ./nginx -c nginx-dev.conf
