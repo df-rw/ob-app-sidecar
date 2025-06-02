@@ -76,6 +76,10 @@ func main() {
 	mux.HandleFunc("POST /api/todos/add", app.TodosAdd)
 	mux.HandleFunc("POST /api/todos/toggle/{id}", app.TodosToggle)
 
+	mux.HandleFunc("GET /api/words", app.Words)
+	mux.HandleFunc("POST /api/words", app.WordsPost)
+	mux.HandleFunc("GET /api/words/search/{chooser}", app.WordsSearch) // "single", "multiple"
+
 	fmt.Printf("%s: listening on port %d\n", os.Args[0], *port)
 	log.Fatal(http.ListenAndServe(fmt.Sprintf(":%d", *port), whoami(logger(mux))))
 }

@@ -21,6 +21,10 @@ export default {
       path: "/todos",
     },
     {
+      name: "Words",
+      path: "/words",
+    },
+    {
       name: "Points",
       open: false,
       pages: [
@@ -30,14 +34,14 @@ export default {
         { name: "100,000", path: "/points/100000" },
         { name: "1,000,000", path: "/points/1000000" },
       ],
-    }
-
+    },
   ],
 
   // Content to add to the head of the page, e.g. for a favicon:
   head: `
     <link rel="icon" href="observable.png" type="image/png" sizes="32x32">
     <script src="/js/htmx.min.js"></script>
+    <script src="/js/hyperscript.min.js"></script>
     <script>
     var APPSERVER = '${process.env.APPSERVER ?? ""}';
     </script>

@@ -1,0 +1,93 @@
+{{block "words-page" .}}
+    <form method="POST" action="/api/words">
+        <fieldset>
+            <legend>Word search (radio)</legend>
+            <input type="search"
+                   name="partial"
+                   placeholder="type a partial word to start searching"
+                   hx-get="/api/words/search/single"
+                   hx-trigger="input changed delay:500ms"
+                   hx-target="#words-search-results-radio"
+                   hx-swap="innerHTML"
+                   />
+
+            <div id="words-search-results-radio">
+            </div>
+
+            <button type="submit" disabled>Submit</button>
+        </fieldset>
+    </form>
+
+    <form method="POST" action="/api/words">
+        <fieldset>
+            <legend>Word search (checkbox)</legend>
+            <input type="search"
+                   name="partial"
+                   placeholder="type a partial word to start searching"
+                   hx-get="/api/words/search/multiple"
+                   hx-trigger="input changed delay:500ms"
+                   hx-target="#words-search-results-checkbox"
+                   hx-swap="innerHTML"
+                   />
+
+            <div id="words-search-results-checkbox">
+            </div>
+
+            <button type="submit" disabled>Submit</button>
+        </fieldset>
+    </form>
+{{end}}
+
+{{block "words-search-results-radio" .}}
+    {{if gt (len .Results) 0}}
+        <ul _="on change from <input[type='radio'][name='chosen-word']/> in me
+                    add @disabled='' to next <button[type='submit']/>
+                    repeat for x in <input[type='radio'][name='chosen-word']/>
+                        if x.checked then
+                            remove @disabled from next <button[type='submit']/>
+                            break
+                        end
+                    end
+
+                on load
+                    add @disabled to next <button[type='submit']/>
+       ">
+            {{range .Results}}
+                <li>
+                    <label>
+                        <input type="radio" name="chosen-word" value="{{.}}"> {{.}}
+                    </label>
+                </li>
+            {{end}}
+        </ul>
+    {{else}}
+        <p>No results.</p>
+    {{end}}
+{{end}}
+
+{{block "words-search-results-checkbox" .}}
+    {{if gt (len .Results) 0}}
+        <ul _="on change from <input[type='checkbox'][name='chosen-word']/> in me
+                    add @disabled='' to next <button[type='submit']/>
+                    repeat for x in <input[type='checkbox'][name='chosen-word']/>
+                        if not x.checked then
+                            exit
+                        end
+                    end
+                    remove @disabled from next <button[type='submit']/>
+
+                on load
+                    add @disabled='' to next <button[type='submit']/>
+       ">
+            {{range .Results}}
+                <li>
+                    <label>
+                        <input type="checkbox" name="chosen-word" value="{{.}}"> {{.}}
+                    </label>
+                </li>
+            {{end}}
+        </ul>
+    {{else}}
+        <p>No results.</p>
+    {{end}}
+{{end}}
