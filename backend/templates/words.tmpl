@@ -41,10 +41,13 @@
 {{block "words-search-results-radio" .}}
     {{if gt (len .Results) 0}}
         <ul _="on change from <input[type='radio'][name='chosen-word']/> in me
-                    add @disabled='' to next <button[type='submit']/>
-                    repeat for x in <input[type='radio'][name='chosen-word']/>
+                    set radiobuttons to <input[type='radio'][name='chosen-word']/>
+                    set submitButton to next <button[type='submit']/>
+
+                    add @disabled='' to submitButton
+                    repeat for x in radiobuttons
                         if x.checked then
-                            remove @disabled from next <button[type='submit']/>
+                            remove @disabled from submitButton
                             break
                         end
                     end
@@ -68,13 +71,16 @@
 {{block "words-search-results-checkbox" .}}
     {{if gt (len .Results) 0}}
         <ul _="on change from <input[type='checkbox'][name='chosen-word']/> in me
-                    add @disabled='' to next <button[type='submit']/>
-                    repeat for x in <input[type='checkbox'][name='chosen-word']/>
+                    set checkboxes to <input[type='checkbox'][name='chosen-word']/>
+                    set submitButton to next <button[type='submit']/>
+
+                    add @disabled='' to submitButton
+                    repeat for x in checkboxes
                         if not x.checked then
                             exit
                         end
                     end
-                    remove @disabled from next <button[type='submit']/>
+                    remove @disabled from submitButton
 
                 on load
                     add @disabled='' to next <button[type='submit']/>
