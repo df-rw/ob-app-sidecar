@@ -1,36 +1,28 @@
 {{block "words-page" .}}
     <form method="POST" action="/api/words">
         <fieldset>
-            <legend>Word search (radio)</legend>
+            <legend>Word search</legend>
+            <select name="chooser"
+                    hx-get="/api/words/search"
+                    hx-trigger="input changed"
+                    hx-target="#words-search-results"
+                    hx-swap="innerHTML"
+                    hx-include="closest form"
+            >
+                <option value="single">Single</option>
+                <option value="multiple">Multiple</option>
+            </select>
             <input type="search"
                    name="partial"
                    placeholder="type a partial word to start searching"
-                   hx-get="/api/words/search/single"
+                   hx-get="/api/words/search"
                    hx-trigger="input changed delay:500ms"
-                   hx-target="#words-search-results-radio"
+                   hx-target="#words-search-results"
                    hx-swap="innerHTML"
+                   hx-include="closest form"
                    />
 
-            <div id="words-search-results-radio">
-            </div>
-
-            <button type="submit" disabled>Submit</button>
-        </fieldset>
-    </form>
-
-    <form method="POST" action="/api/words">
-        <fieldset>
-            <legend>Word search (checkbox)</legend>
-            <input type="search"
-                   name="partial"
-                   placeholder="type a partial word to start searching"
-                   hx-get="/api/words/search/multiple"
-                   hx-trigger="input changed delay:500ms"
-                   hx-target="#words-search-results-checkbox"
-                   hx-swap="innerHTML"
-                   />
-
-            <div id="words-search-results-checkbox">
+            <div id="words-search-results">
             </div>
 
             <button type="submit" disabled>Submit</button>

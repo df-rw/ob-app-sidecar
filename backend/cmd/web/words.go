@@ -46,8 +46,9 @@ func (app *Application) WordsSearch(w http.ResponseWriter, r *http.Request) {
 	results := []string{}
 
 	r.ParseForm()
+
 	partial := r.FormValue("partial")
-	chooser := r.PathValue("chooser")
+	chooser := r.FormValue("chooser")
 
 	if len(partial) > 0 {
 		for _, v := range words {
